@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="stormpath-sdk-api-1.0.RC3.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.stormpath.sdk/stormpath-sdk-api/1.0.RC3.1/e55fd1d73ea022f39437bfa824579a930c986c72/stormpath-sdk-api-1.0.RC3.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.stormpath.sdk/stormpath-sdk-api/1.0.RC3.1/cbdc04664f1431db1c93f60c66ca6c87e9afce26/stormpath-sdk-api-1.0.RC3.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

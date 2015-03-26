@@ -19,4 +19,7 @@ local.properties
 *.DS_Store
 proguard/
 
+# Stormpath
+apiKey.properties
+
 kegtab/crashlytics.properties
