@@ -27,73 +27,70 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-
+import butterknife.ButterKnife;
 import org.kegbot.app.KegbotApplication;
 import org.kegbot.app.R;
 import org.kegbot.app.config.AppConfiguration;
-
-import butterknife.ButterKnife;
 
 /**
  * Shows a choice of
  */
 public class SetupSelectBackendFragment extends SetupFragment {
 
-  private View mView;
+	private final DialogFragment mDialogFragment = new DialogFragment() {
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			builder.setTitle(R.string.setup_select_backend_local_warning_title);
+			builder.setMessage(R.string.setup_select_backend_local_warning_description);
+			builder.setPositiveButton(R.string.setup_select_backend_local_warning_ok, null);
+			builder.setCancelable(false);
+			return builder.create();
+		}
+	};
+	private View mView;
 
-  private final DialogFragment mDialogFragment = new DialogFragment() {
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-      AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-      builder.setTitle(R.string.setup_select_backend_local_warning_title);
-      builder.setMessage(R.string.setup_select_backend_local_warning_description);
-      builder.setPositiveButton(R.string.setup_select_backend_local_warning_ok, null);
-      builder.setCancelable(false);
-      return builder.create();
-    }
-  };
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mView = inflater.inflate(R.layout.setup_select_backend_fragment, null);
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    mView = inflater.inflate(R.layout.setup_select_backend_fragment, null);
+		final RadioGroup group = ButterKnife.findById(mView, R.id.backend_group);
+		final AppConfiguration prefs = ((KegbotApplication) getActivity().getApplication()).getConfig();
+		if (prefs.isLocalBackend()) {
+			group.check(R.id.radio_backend_local);
+		} else {
+			group.check(R.id.radio_backend_server);
+		}
 
-    final RadioGroup group = ButterKnife.findById(mView, R.id.backend_group);
-    final AppConfiguration prefs = ((KegbotApplication) getActivity().getApplication()).getConfig();
-    if (prefs.isLocalBackend()) {
-      group.check(R.id.radio_backend_local);
-    } else {
-      group.check(R.id.radio_backend_server);
-    }
+		final RadioButton button = ButterKnife.findById(mView, R.id.radio_backend_local);
+		button.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mDialogFragment.show(getFragmentManager(), null);
+			}
+		});
 
-    final RadioButton button = ButterKnife.findById(mView, R.id.radio_backend_local);
-    button.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        mDialogFragment.show(getFragmentManager(), null);
-      }
-    });
+		return mView;
+	}
 
-    return mView;
-  }
+	@Override
+	public String validate() {
+		final AppConfiguration prefs = ((KegbotApplication) getActivity().getApplication()).getConfig();
+		final RadioGroup group = ButterKnife.findById(mView, R.id.backend_group);
+		final int checkedId = group.getCheckedRadioButtonId();
 
-  @Override
-  public String validate() {
-    final AppConfiguration prefs = ((KegbotApplication) getActivity().getApplication()).getConfig();
-    final RadioGroup group = ButterKnife.findById(mView, R.id.backend_group);
-    final int checkedId = group.getCheckedRadioButtonId();
+		switch (checkedId) {
+			case R.id.radio_backend_local:
+				prefs.setIsLocalBackend(true);
+				break;
+			case R.id.radio_backend_server:
+				prefs.setIsLocalBackend(false);
+				break;
+			default:
+				return "Please select one of the backend modes.";
+		}
 
-    switch (checkedId) {
-      case R.id.radio_backend_local:
-        prefs.setIsLocalBackend(true);
-        break;
-      case R.id.radio_backend_server:
-        prefs.setIsLocalBackend(false);
-        break;
-      default:
-        return "Please select one of the backend modes.";
-    }
-
-    return "";
-  }
+		return "";
+	}
 
 }

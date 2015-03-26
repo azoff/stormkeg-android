@@ -23,36 +23,36 @@
             android:layout_height="fill_parent"
             android:background="@drawable/shape_rounded_rect">
 
-    <RadioGroup
-        android:id="@+id/backend_group"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+	<RadioGroup
+			android:id="@+id/backend_group"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/radio_backend_server"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/setup_select_backend_server"/>
+		<RadioButton
+				android:id="@+id/radio_backend_server"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/setup_select_backend_server"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="@style/smallText"
-            android:text="@string/setup_select_backend_server_description"
-            android:layout_marginBottom="8dp"/>
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				style="@style/smallText"
+				android:text="@string/setup_select_backend_server_description"
+				android:layout_marginBottom="8dp"/>
 
-        <RadioButton
-            android:id="@+id/radio_backend_local"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/setup_select_backend_local"/>
+		<RadioButton
+				android:id="@+id/radio_backend_local"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/setup_select_backend_local"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="@style/smallText"
-            android:text="@string/setup_select_backend_local_description"/>
-    </RadioGroup>
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				style="@style/smallText"
+				android:text="@string/setup_select_backend_local_description"/>
+	</RadioGroup>
 
 </ScrollView>

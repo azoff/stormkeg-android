@@ -30,93 +30,91 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
+import butterknife.ButterKnife;
 import org.kegbot.backend.Backend;
 import org.kegbot.backend.BackendException;
 import org.kegbot.core.KegbotCore;
-
-import butterknife.ButterKnife;
 
 /**
  * @author mike wakerly (opensource@hoho.com)
  */
 public class NewTapActivity extends Activity {
-  private static final String TAG = NewTapActivity.class.getSimpleName();
+	private static final String TAG = NewTapActivity.class.getSimpleName();
 
-  TextView mName;
-  Button mActivateButton;
+	TextView mName;
+	Button mActivateButton;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.new_tap_activity);
+	static Intent getStartIntent(Context context) {
+		final Intent intent = new Intent(context, NewTapActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+		return intent;
+	}
 
-    mName = ButterKnife.findById(this, R.id.newTapName);
-    mActivateButton = ButterKnife.findById(this, R.id.newTapButton);
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.new_tap_activity);
 
-    mActivateButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        handleDoneButton();
-      }
-    });
-  }
+		mName = ButterKnife.findById(this, R.id.newTapName);
+		mActivateButton = ButterKnife.findById(this, R.id.newTapButton);
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-  }
+		mActivateButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				handleDoneButton();
+			}
+		});
+	}
 
-  @Override
-  protected void onPause() {
-    super.onPause();
-  }
+	@Override
+	protected void onResume() {
+		super.onResume();
+	}
 
-  private void handleDoneButton() {
-    final ProgressDialog dialog = new ProgressDialog(this);
-    dialog.setIndeterminate(true);
-    dialog.setCancelable(false);
-    dialog.setTitle("Activating Tap");
-    dialog.setMessage("Please wait ...");
-    dialog.show();
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}
 
-    new AsyncTask<Void, Void, String>() {
-      @Override
-      protected String doInBackground(Void... params) {
-        try {
-          final Backend backend = KegbotCore.getInstance(NewTapActivity.this).getBackend();
-          backend.createTap(mName.getText().toString());
-          return "";
-        } catch (BackendException e) {
-          Log.w(TAG, "Activation failed.", e);
-          return e.toString();
-        }
-      }
+	private void handleDoneButton() {
+		final ProgressDialog dialog = new ProgressDialog(this);
+		dialog.setIndeterminate(true);
+		dialog.setCancelable(false);
+		dialog.setTitle("Activating Tap");
+		dialog.setMessage("Please wait ...");
+		dialog.show();
 
-      @Override
-      protected void onPostExecute(String result) {
-        dialog.dismiss();
-        if (result.isEmpty()) {
-          Log.d(TAG, "Activated successfully!");
-          KegbotCore.getInstance(NewTapActivity.this).getSyncManager().requestSync();
-          finish();
-          return;
-        }
-        new AlertDialog.Builder(NewTapActivity.this)
-            .setCancelable(true)
-            .setNegativeButton("Ok", null)
-            .setTitle("Activation failed")
-            .setMessage("Activation failed: " + result)
-            .show();
-      }
+		new AsyncTask<Void, Void, String>() {
+			@Override
+			protected String doInBackground(Void... params) {
+				try {
+					final Backend backend = KegbotCore.getInstance(NewTapActivity.this).getBackend();
+					backend.createTap(mName.getText().toString());
+					return "";
+				} catch (BackendException e) {
+					Log.w(TAG, "Activation failed.", e);
+					return e.toString();
+				}
+			}
 
-    }.execute();
-  }
+			@Override
+			protected void onPostExecute(String result) {
+				dialog.dismiss();
+				if (result.isEmpty()) {
+					Log.d(TAG, "Activated successfully!");
+					KegbotCore.getInstance(NewTapActivity.this).getSyncManager().requestSync();
+					finish();
+					return;
+				}
+				new AlertDialog.Builder(NewTapActivity.this)
+						.setCancelable(true)
+						.setNegativeButton("Ok", null)
+						.setTitle("Activation failed")
+						.setMessage("Activation failed: " + result)
+						.show();
+			}
 
-  static Intent getStartIntent(Context context) {
-    final Intent intent = new Intent(context, NewTapActivity.class);
-    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-    return intent;
-  }
+		}.execute();
+	}
 
 }

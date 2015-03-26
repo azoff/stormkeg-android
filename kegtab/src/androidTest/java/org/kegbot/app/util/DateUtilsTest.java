@@ -30,21 +30,21 @@ import java.util.TimeZone;
  */
 public class DateUtilsTest extends TestCase {
 
-  public void testDateFromIso8601String() throws ParseException {
+	public void testDateFromIso8601String() throws ParseException {
 
-    TimeZone timeZone = TimeZone.getTimeZone("UTC");
+		TimeZone timeZone = TimeZone.getTimeZone("UTC");
 
-    long timestamp = DateUtils.dateFromIso8601String("2013-03-13T20:46:01+00:00", timeZone);
-    assertEquals(1363207561000L, timestamp);
+		long timestamp = DateUtils.dateFromIso8601String("2013-03-13T20:46:01+00:00", timeZone);
+		assertEquals(1363207561000L, timestamp);
 
-    timestamp = DateUtils.dateFromIso8601String("2013-03-13T22:46:01+02:00", timeZone);
-    assertEquals(1363207561000L, timestamp);
+		timestamp = DateUtils.dateFromIso8601String("2013-03-13T22:46:01+02:00", timeZone);
+		assertEquals(1363207561000L, timestamp);
 
-    timestamp = DateUtils.dateFromIso8601String("2013-03-13T20:46:01Z", timeZone);
-    assertEquals(1363207561000L, timestamp);
+		timestamp = DateUtils.dateFromIso8601String("2013-03-13T20:46:01Z", timeZone);
+		assertEquals(1363207561000L, timestamp);
 
-    timestamp = DateUtils.dateFromIso8601String("2013-02-02T19:17:57Z", timeZone);
-    assertEquals(1359832677000L, timestamp);
-  }
+		timestamp = DateUtils.dateFromIso8601String("2013-02-02T19:17:57Z", timeZone);
+		assertEquals(1359832677000L, timestamp);
+	}
 
 }

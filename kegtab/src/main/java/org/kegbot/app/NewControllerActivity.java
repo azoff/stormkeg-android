@@ -33,16 +33,13 @@ import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
+import butterknife.ButterKnife;
 import com.google.common.base.Strings;
-
 import org.kegbot.backend.Backend;
 import org.kegbot.backend.BackendException;
 import org.kegbot.core.KegbotCore;
 import org.kegbot.core.SyncManager;
 import org.kegbot.proto.Models.Controller;
-
-import butterknife.ButterKnife;
 
 /**
  * Activity shown when a new controller is connected.
@@ -51,197 +48,192 @@ import butterknife.ButterKnife;
  */
 public class NewControllerActivity extends Activity {
 
-  private static final String TAG = NewControllerActivity.class.getSimpleName();
+	private static final String TAG = NewControllerActivity.class.getSimpleName();
 
-  private static final String EXTRA_CONTROLLER_NAME = "name";
-  private static final String EXTRA_SERIAL_NUMBER = "serial";
-  private static final String EXTRA_DEVICE_TYPE = "type";
+	private static final String EXTRA_CONTROLLER_NAME = "name";
+	private static final String EXTRA_SERIAL_NUMBER = "serial";
+	private static final String EXTRA_DEVICE_TYPE = "type";
+	private final Handler mHandler = new Handler(Looper.getMainLooper());
+	private final Runnable mFinishRunnable = new Runnable() {
+		@Override
+		public void run() {
+			finish();
+		}
+	};
+	TextView mTitle;
+	TextView mSubtitle;
+	ProgressBar mProgressBar;
+	Button mCancelButton;
+	Button mAssignButton;
+	ViewGroup mNumMetersGroup;
+	NumberPicker mNumMeters;
+	private String mControllerName;
+	private String mSerialNumber;
+	private String mDeviceType;
 
-  private String mControllerName;
-  private String mSerialNumber;
-  private String mDeviceType;
+	public static void startForNewController(Context context, String controllerName,
+	                                         String serialNumber, String deviceType) {
+		final Intent intent = new Intent(context, NewControllerActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.putExtra(EXTRA_CONTROLLER_NAME, Strings.nullToEmpty(controllerName));
+		intent.putExtra(EXTRA_SERIAL_NUMBER, Strings.nullToEmpty(serialNumber));
+		intent.putExtra(EXTRA_DEVICE_TYPE, Strings.nullToEmpty(deviceType));
+		context.startActivity(intent);
+	}
 
-  TextView mTitle;
-  TextView mSubtitle;
-  ProgressBar mProgressBar;
-  Button mCancelButton;
-  Button mAssignButton;
-  ViewGroup mNumMetersGroup;
-  NumberPicker mNumMeters;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.new_controller_activity);
 
-  private final Handler mHandler = new Handler(Looper.getMainLooper());
+		mTitle = ButterKnife.findById(this, R.id.new_controller_title);
+		mSubtitle = ButterKnife.findById(this, R.id.new_controller_subtitle);
+		mProgressBar = ButterKnife.findById(this, R.id.new_controller_progbar);
+		mCancelButton = ButterKnife.findById(this, R.id.new_controller_cancel_button);
+		mAssignButton = ButterKnife.findById(this, R.id.new_controller_add_button);
+		mNumMetersGroup = ButterKnife.findById(this, R.id.new_controller_num_meters_group);
+		mNumMeters = ButterKnife.findById(this, R.id.new_controller_num_meters);
 
-  private final Runnable mFinishRunnable = new Runnable() {
-    @Override
-    public void run() {
-      finish();
-    }
-  };
+		mProgressBar.setVisibility(View.INVISIBLE);
+		mProgressBar.setIndeterminate(true);
+		mNumMeters.setMinValue(1);
+		mNumMeters.setMaxValue(16);
+		mNumMeters.setValue(2);
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
-    setContentView(R.layout.new_controller_activity);
+		// Prevents soft keyboard from appearing.
+		mNumMeters.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
 
-    mTitle = ButterKnife.findById(this, R.id.new_controller_title);
-    mSubtitle = ButterKnife.findById(this, R.id.new_controller_subtitle);
-    mProgressBar = ButterKnife.findById(this, R.id.new_controller_progbar);
-    mCancelButton = ButterKnife.findById(this, R.id.new_controller_cancel_button);
-    mAssignButton = ButterKnife.findById(this, R.id.new_controller_add_button);
-    mNumMetersGroup = ButterKnife.findById(this, R.id.new_controller_num_meters_group);
-    mNumMeters = ButterKnife.findById(this, R.id.new_controller_num_meters);
+		mAssignButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				createController();
+			}
+		});
 
-    mProgressBar.setVisibility(View.INVISIBLE);
-    mProgressBar.setIndeterminate(true);
-    mNumMeters.setMinValue(1);
-    mNumMeters.setMaxValue(16);
-    mNumMeters.setValue(2);
+		mCancelButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				finish();
+			}
+		});
 
-    // Prevents soft keyboard from appearing.
-    mNumMeters.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+		handleIntent();
+	}
 
-    mAssignButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        createController();
-      }
-    });
+	private void createController() {
+		showAdding();
 
-    mCancelButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        finish();
-      }
-    });
+		new AsyncTask<Void, Void, String>() {
+			@Override
+			protected String doInBackground(Void... params) {
+				Log.d(TAG, "Creating controller...");
 
-    handleIntent();
-  }
+				final Backend backend = KegbotCore.getInstance(NewControllerActivity.this).getBackend();
+				try {
+					final Controller controller =
+							backend.createController(mControllerName, mSerialNumber, mDeviceType);
 
-  private void createController() {
-    showAdding();
+					final int numMeters = mNumMeters.getValue();
+					for (int portNum = 0; portNum < numMeters; portNum++) {
+						backend.createFlowMeter(controller,
+								String.format("flow%d", Integer.valueOf(portNum)), 5.4d);
+					}
 
-    new AsyncTask<Void, Void, String>() {
-      @Override
-      protected String doInBackground(Void... params) {
-        Log.d(TAG, "Creating controller...");
+					final SyncManager syncManager =
+							KegbotCore.getInstance(NewControllerActivity.this).getSyncManager();
+					syncManager.requestSync();
+					Log.d(TAG, "Done!");
+					return null;
+				} catch (BackendException e) {
+					Log.e(TAG, "Error creating controller: " + e, e);
+					return String.format("Error creating controller (%s).", e.getMessage());
+				}
+			}
 
-        final Backend backend = KegbotCore.getInstance(NewControllerActivity.this).getBackend();
-        try {
-          final Controller controller =
-              backend.createController(mControllerName, mSerialNumber, mDeviceType);
+			@Override
+			protected void onPostExecute(String result) {
+				if (result == null) {
+					showSuccess();
+				} else {
+					showError(result);
+				}
+			}
 
-          final int numMeters = mNumMeters.getValue();
-          for (int portNum = 0; portNum < numMeters; portNum++) {
-            backend.createFlowMeter(controller,
-                String.format("flow%d", Integer.valueOf(portNum)), 5.4d);
-          }
+		}.execute();
+	}
 
-          final SyncManager syncManager =
-              KegbotCore.getInstance(NewControllerActivity.this).getSyncManager();
-          syncManager.requestSync();
-          Log.d(TAG, "Done!");
-          return null;
-        } catch (BackendException e) {
-          Log.e(TAG, "Error creating controller: " + e, e);
-          return String.format("Error creating controller (%s).", e.getMessage());
-        }
-      }
+	private void showInitial() {
+		mSubtitle.setText(R.string.new_controller_title);
+		mSubtitle.setText(String.format("%s %s", mSubtitle.getText(), mControllerName));
 
-      @Override
-      protected void onPostExecute(String result) {
-        if (result == null) {
-          showSuccess();
-        } else {
-          showError(result);
-        }
-      }
+		mProgressBar.setVisibility(View.INVISIBLE);
+		mAssignButton.setVisibility(View.VISIBLE);
+		mCancelButton.setVisibility(View.VISIBLE);
+		mNumMetersGroup.setVisibility(View.VISIBLE);
 
-    }.execute();
-  }
+	}
 
-  private void showInitial() {
-    mSubtitle.setText(R.string.new_controller_title);
-    mSubtitle.setText(String.format("%s %s", mSubtitle.getText(), mControllerName));
+	private void showAdding() {
+		mSubtitle.setText(R.string.new_controller_status_adding);
 
-    mProgressBar.setVisibility(View.INVISIBLE);
-    mAssignButton.setVisibility(View.VISIBLE);
-    mCancelButton.setVisibility(View.VISIBLE);
-    mNumMetersGroup.setVisibility(View.VISIBLE);
+		mProgressBar.setVisibility(View.VISIBLE);
+		mProgressBar.setIndeterminate(true);
+		mAssignButton.setVisibility(View.GONE);
+		mCancelButton.setVisibility(View.GONE);
+		mNumMetersGroup.setVisibility(View.GONE);
+	}
 
-  }
+	private void showSuccess() {
+		mSubtitle.setText(R.string.new_controller_status_added);
+		mProgressBar.setIndeterminate(false);
+		mProgressBar.setProgress(100);
 
-  private void showAdding() {
-    mSubtitle.setText(R.string.new_controller_status_adding);
+		mHandler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				finish();
+			}
+		}, 3000);
+	}
 
-    mProgressBar.setVisibility(View.VISIBLE);
-    mProgressBar.setIndeterminate(true);
-    mAssignButton.setVisibility(View.GONE);
-    mCancelButton.setVisibility(View.GONE);
-    mNumMetersGroup.setVisibility(View.GONE);
-  }
+	private void showError(String error) {
+		mSubtitle.setText(error);
 
-  private void showSuccess() {
-    mSubtitle.setText(R.string.new_controller_status_added);
-    mProgressBar.setIndeterminate(false);
-    mProgressBar.setProgress(100);
+		mProgressBar.setProgress(100);
+		mProgressBar.setIndeterminate(false);
+		mCancelButton.setVisibility(View.VISIBLE);
 
-    mHandler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        finish();
-      }
-    }, 3000);
-  }
+		mHandler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				showInitial();
+			}
+		}, 5000);
+	}
 
-  private void showError(String error) {
-    mSubtitle.setText(error);
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		Log.d(TAG, "onNewIntent: " + intent);
+		setIntent(intent);
+		handleIntent();
+	}
 
-    mProgressBar.setProgress(100);
-    mProgressBar.setIndeterminate(false);
-    mCancelButton.setVisibility(View.VISIBLE);
+	private void handleIntent() {
+		final Intent intent = getIntent();
+		Log.d(TAG, "Handling intent: " + intent);
 
-    mHandler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        showInitial();
-      }
-    }, 5000);
-  }
+		mControllerName = intent.getStringExtra(EXTRA_CONTROLLER_NAME);
+		mSerialNumber = Strings.nullToEmpty(intent.getStringExtra(EXTRA_SERIAL_NUMBER));
+		mDeviceType = Strings.nullToEmpty(intent.getStringExtra(EXTRA_DEVICE_TYPE));
+		mSubtitle.setText(String.format("%s %s", mSubtitle.getText(), mControllerName));
+	}
 
-  @Override
-  protected void onNewIntent(Intent intent) {
-    super.onNewIntent(intent);
-    Log.d(TAG, "onNewIntent: " + intent);
-    setIntent(intent);
-    handleIntent();
-  }
-
-  private void handleIntent() {
-    final Intent intent = getIntent();
-    Log.d(TAG, "Handling intent: " + intent);
-
-    mControllerName = intent.getStringExtra(EXTRA_CONTROLLER_NAME);
-    mSerialNumber = Strings.nullToEmpty(intent.getStringExtra(EXTRA_SERIAL_NUMBER));
-    mDeviceType = Strings.nullToEmpty(intent.getStringExtra(EXTRA_DEVICE_TYPE));
-    mSubtitle.setText(String.format("%s %s", mSubtitle.getText(), mControllerName));
-  }
-
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    mHandler.removeCallbacks(mFinishRunnable);
-  }
-
-  public static void startForNewController(Context context, String controllerName,
-      String serialNumber, String deviceType) {
-    final Intent intent = new Intent(context, NewControllerActivity.class);
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    intent.putExtra(EXTRA_CONTROLLER_NAME, Strings.nullToEmpty(controllerName));
-    intent.putExtra(EXTRA_SERIAL_NUMBER, Strings.nullToEmpty(serialNumber));
-    intent.putExtra(EXTRA_DEVICE_TYPE, Strings.nullToEmpty(deviceType));
-    context.startActivity(intent);
-  }
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mHandler.removeCallbacks(mFinishRunnable);
+	}
 
 }

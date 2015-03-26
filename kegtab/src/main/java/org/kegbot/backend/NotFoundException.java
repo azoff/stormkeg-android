@@ -24,19 +24,19 @@ package org.kegbot.backend;
  */
 public class NotFoundException extends BackendException {
 
-  public NotFoundException() {
-  }
+	public NotFoundException() {
+	}
 
-  public NotFoundException(String detailMessage) {
-    super(detailMessage);
-  }
+	public NotFoundException(String detailMessage) {
+		super(detailMessage);
+	}
 
-  public NotFoundException(Throwable throwable) {
-    super(throwable);
-  }
+	public NotFoundException(Throwable throwable) {
+		super(throwable);
+	}
 
-  public NotFoundException(String detailMessage, Throwable throwable) {
-    super(detailMessage, throwable);
-  }
+	public NotFoundException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
 
 }

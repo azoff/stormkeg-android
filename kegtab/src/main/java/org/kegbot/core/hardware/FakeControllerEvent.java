@@ -27,20 +27,20 @@ import org.kegbot.app.event.Event;
  */
 public class FakeControllerEvent implements Event {
 
-  final Controller mController;
-  final boolean mAdded;
+	final Controller mController;
+	final boolean mAdded;
 
-  public FakeControllerEvent(final Controller controller, final boolean added) {
-    mController = controller;
-    mAdded = added;
-  }
+	public FakeControllerEvent(final Controller controller, final boolean added) {
+		mController = controller;
+		mAdded = added;
+	}
 
-  public Controller getController() {
-    return mController;
-  }
+	public Controller getController() {
+		return mController;
+	}
 
-  public boolean isAdded() {
-    return mAdded;
-  }
+	public boolean isAdded() {
+		return mAdded;
+	}
 
 }

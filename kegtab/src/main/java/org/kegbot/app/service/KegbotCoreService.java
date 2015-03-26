@@ -32,7 +32,6 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
-
 import org.kegbot.app.HomeActivity;
 import org.kegbot.app.PourInProgressActivity;
 import org.kegbot.app.R;
@@ -60,241 +59,234 @@ import java.util.concurrent.TimeUnit;
  */
 public class KegbotCoreService extends Service {
 
-  private static String TAG = KegbotCoreService.class.getSimpleName();
+	private static final int NOTIFICATION_FOREGROUND = 1;
+	private static final long ACTIVITY_START_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(2);
+	private static String TAG = KegbotCoreService.class.getSimpleName();
+	private final FlowManager.Listener mFlowListener = new FlowManager.Listener() {
+		@Override
+		public void onFlowStart(final Flow flow) {
+			Log.d(TAG, "onFlowStart: " + flow);
+			if (flow.getTap() == null) {
+				Log.d(TAG, "Unbound flow; no updated will be posted.");
+				mCore.getAlertCore().postAlert(
+						AlertCore.newBuilder(getString(R.string.alert_flow_activity_title))
+								.setDescription(getString(R.string.alert_flow_activity_description, flow.getMeterName()))
+								.severityError()
+								.setId(flow.getMeterName())
+								.build()
+				);
+				return;
+			}
 
-  private static final int NOTIFICATION_FOREGROUND = 1;
+			if (flow.isAuthenticated()) {
+				mHardwareManager.toggleOutput(flow.getTap(), true);
+			}
+			startPourActivity();
+			mCore.postEvent(new FlowUpdateEvent(flow));
+		}
 
-  private static final long ACTIVITY_START_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(2);
-  private long mLastPourActivityStart = 0;
+		@Override
+		public void onFlowUpdate(final Flow flow) {
+			if (flow.getTap() == null) {
+				return;
+			}
+			if (flow.isAuthenticated()) {
+				mHardwareManager.toggleOutput(flow.getTap(), true);
+			}
+			mCore.postEvent(new FlowUpdateEvent(flow));
+		}
 
-  private KegbotCore mCore;
-  private FlowManager mFlowManager;
-  private AppConfiguration mConfig;
+		@Override
+		public void onFlowEnd(final Flow flow) {
+			Log.d(TAG, "onFlowEnd" + flow);
+			if (flow.getTap() == null) {
+				return;
+			}
+			mHardwareManager.toggleOutput(flow.getTap(), false);
+			final Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					Log.d(TAG, "Flow ended: " + flow);
+					recordDrinkForFlow(flow);
+				}
+			};
+			mExecutorService.submit(r);
+		}
+	};
+	private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
+	private final IntentFilter mIntentFilter =
+			new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+	private long mLastPourActivityStart = 0;
+	private KegbotCore mCore;
+	private FlowManager mFlowManager;
+	private AppConfiguration mConfig;
+	private HardwareManager mHardwareManager;
+	private SyncManager mApiManager;
+	private PowerManager.WakeLock mWakeLock;
+	private BroadcastReceiver mBroadcastReceiver;
 
-  private HardwareManager mHardwareManager;
-  private SyncManager mApiManager;
-  private PowerManager.WakeLock mWakeLock;
+	public static void startService(Context context) {
+		final Intent intent = new Intent(context, KegbotCoreService.class);
+		context.startService(intent);
+	}
 
-  private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
+	public static void stopService(Context context) {
+		final Intent intent = new Intent(context, KegbotCoreService.class);
+		context.stopService(intent);
+	}
 
-  private final IntentFilter mIntentFilter =
-      new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-  private BroadcastReceiver mBroadcastReceiver;
+	private void startPourActivity() {
+		Log.d(TAG, "startPourActivity");
+		long now = SystemClock.elapsedRealtime();
+		if ((now - mLastPourActivityStart) > ACTIVITY_START_TIMEOUT_MILLIS) {
+			mLastPourActivityStart = now;
+			final Intent intent = PourInProgressActivity.getStartIntent(this);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			Log.d(TAG, "Starting pour activity");
+			startActivity(intent);
+		}
+	}
 
-  private final FlowManager.Listener mFlowListener = new FlowManager.Listener() {
-    @Override
-    public void onFlowStart(final Flow flow) {
-      Log.d(TAG, "onFlowStart: " + flow);
-      if (flow.getTap() == null) {
-        Log.d(TAG, "Unbound flow; no updated will be posted.");
-        mCore.getAlertCore().postAlert(
-            AlertCore.newBuilder(getString(R.string.alert_flow_activity_title))
-                .setDescription(getString(R.string.alert_flow_activity_description, flow.getMeterName()))
-                .severityError()
-                .setId(flow.getMeterName())
-                .build()
-        );
-        return;
-      }
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		Log.d(TAG, "onCreate()");
+		mCore = KegbotCore.getInstance(this);
+		mFlowManager = mCore.getFlowManager();
+		mApiManager = mCore.getSyncManager();
+		mHardwareManager = mCore.getHardwareManager();
+		mConfig = mCore.getConfiguration();
 
-      if (flow.isAuthenticated()) {
-        mHardwareManager.toggleOutput(flow.getTap(), true);
-      }
-      startPourActivity();
-      mCore.postEvent(new FlowUpdateEvent(flow));
-    }
+		// TODO: this should be part of a config update event.
+		mCore.getImageDownloader().setBaseUrl(mConfig.getKegbotUrl());
 
-    @Override
-    public void onFlowUpdate(final Flow flow) {
-      if (flow.getTap() == null) {
-        return;
-      }
-      if (flow.isAuthenticated()) {
-        mHardwareManager.toggleOutput(flow.getTap(), true);
-      }
-      mCore.postEvent(new FlowUpdateEvent(flow));
-    }
+		mFlowManager.addFlowListener(mFlowListener);
 
-    @Override
-    public void onFlowEnd(final Flow flow) {
-      Log.d(TAG, "onFlowEnd" + flow);
-      if (flow.getTap() == null) {
-        return;
-      }
-      mHardwareManager.toggleOutput(flow.getTap(), false);
-      final Runnable r = new Runnable() {
-        @Override
-        public void run() {
-          Log.d(TAG, "Flow ended: " + flow);
-          recordDrinkForFlow(flow);
-        }
-      };
-      mExecutorService.submit(r);
-    }
-  };
+		updateFromPreferences();
 
-  private void startPourActivity() {
-    Log.d(TAG, "startPourActivity");
-    long now = SystemClock.elapsedRealtime();
-    if ((now - mLastPourActivityStart) > ACTIVITY_START_TIMEOUT_MILLIS) {
-      mLastPourActivityStart = now;
-      final Intent intent = PourInProgressActivity.getStartIntent(this);
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      Log.d(TAG, "Starting pour activity");
-      startActivity(intent);
-    }
-  }
+		mCore.start();
 
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    Log.d(TAG, "onCreate()");
-    mCore = KegbotCore.getInstance(this);
-    mFlowManager = mCore.getFlowManager();
-    mApiManager = mCore.getSyncManager();
-    mHardwareManager = mCore.getHardwareManager();
-    mConfig = mCore.getConfiguration();
+		mBroadcastReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				// TODO(mikey): Refactor with similar method in syncManager.
+				final ConnectivityManager cm =
+						(ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+				final NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
 
-    // TODO: this should be part of a config update event.
-    mCore.getImageDownloader().setBaseUrl(mConfig.getKegbotUrl());
-
-    mFlowManager.addFlowListener(mFlowListener);
-
-    updateFromPreferences();
-
-    mCore.start();
-
-    mBroadcastReceiver = new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-        // TODO(mikey): Refactor with similar method in syncManager.
-        final ConnectivityManager cm =
-            (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
-        final boolean connected;
-        final String message;
-        if (activeNetwork != null && activeNetwork.isConnected()) {
-          connected = true;
-          message = String.format("Connected to %s", activeNetwork.getTypeName());
-        } else {
-          connected = false;
-          message = "Network not connected.";
-        }
-        mCore.postEvent(new ConnectivityChangedEvent(connected, message));
-      }
-    };
-    registerReceiver(mBroadcastReceiver, mIntentFilter);
+				final boolean connected;
+				final String message;
+				if (activeNetwork != null && activeNetwork.isConnected()) {
+					connected = true;
+					message = String.format("Connected to %s", activeNetwork.getTypeName());
+				} else {
+					connected = false;
+					message = "Network not connected.";
+				}
+				mCore.postEvent(new ConnectivityChangedEvent(connected, message));
+			}
+		};
+		registerReceiver(mBroadcastReceiver, mIntentFilter);
 
 
-    if (mConfig.stayAwake()) {
-      // CoreActivity will keep the screen on when a Kegbot activity is
-      // in the foreground; we only need to worry about holding a partial
-      // wakelock.
-      PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-      mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kegbot-core");
-      mWakeLock.acquire();
-    } else {
-      mWakeLock = null;
-    }
-  }
+		if (mConfig.stayAwake()) {
+			// CoreActivity will keep the screen on when a Kegbot activity is
+			// in the foreground; we only need to worry about holding a partial
+			// wakelock.
+			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kegbot-core");
+			mWakeLock.acquire();
+		} else {
+			mWakeLock = null;
+		}
+	}
 
-  /**
-   * Binder interface to this service. Local binds only.
-   */
-  public class LocalBinder extends Binder {
-    public KegbotCoreService getService() {
-      return KegbotCoreService.this;
-    }
-  }
+	@Override
+	public IBinder onBind(Intent intent) {
+		return null; // Not bindable.
+	}
 
-  @Override
-  public IBinder onBind(Intent intent) {
-    return null; // Not bindable.
-  }
+	@Override
+	protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
+		mCore.dump(writer);
+	}
 
-  @Override
-  protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-    mCore.dump(writer);
-  }
+	@Override
+	public void onDestroy() {
+		Log.d(TAG, "onDestroy()");
+		unregisterReceiver(mBroadcastReceiver);
 
-  @Override
-  public void onDestroy() {
-    Log.d(TAG, "onDestroy()");
-    unregisterReceiver(mBroadcastReceiver);
+		mFlowManager.removeFlowListener(mFlowListener);
+		mCore.stop();
+		if (mWakeLock != null) {
+			mWakeLock.release();
+			mWakeLock = null;
+		}
 
-    mFlowManager.removeFlowListener(mFlowListener);
-    mCore.stop();
-    if (mWakeLock != null) {
-      mWakeLock.release();
-      mWakeLock = null;
-    }
+		super.onDestroy();
+	}
 
-    super.onDestroy();
-  }
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		return START_STICKY;
+	}
 
-  @Override
-  public int onStartCommand(Intent intent, int flags, int startId) {
-    return START_STICKY;
-  }
+	private void updateFromPreferences() {
+		final boolean runCore = mConfig.getRunCore();
+		if (runCore) {
+			debugNotice("Running core!");
+			mFlowManager.addFlowListener(mFlowListener);
+			startForeground(NOTIFICATION_FOREGROUND, buildForegroundNotification());
+		} else {
+			debugNotice("Stopping core.");
+			mFlowManager.removeFlowListener(mFlowListener);
+			mCore.stop();
+			stopForeground(true);
+		}
+	}
 
-  public static void startService(Context context) {
-    final Intent intent = new Intent(context, KegbotCoreService.class);
-    context.startService(intent);
-  }
+	private Notification buildForegroundNotification() {
+		final Intent intent = new Intent(this, HomeActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+				PendingIntent.FLAG_CANCEL_CURRENT);
+		final Notification notification = Utils.buildNotification(new Notification.Builder(this)
+				.setOngoing(true)
+				.setSmallIcon(R.drawable.icon)
+				.setWhen(System.currentTimeMillis())
+				.setContentTitle(getString(R.string.kegbot_core_running))
+				.setContentIntent(pendingIntent));
+		return notification;
+	}
 
-  public static void stopService(Context context) {
-    final Intent intent = new Intent(context, KegbotCoreService.class);
-    context.stopService(intent);
-  }
+	/**
+	 * @param ended
+	 */
+	private void recordDrinkForFlow(final Flow ended) {
+		long minVolume = mConfig.getMinimumVolumeMl();
+		if (ended.getVolumeMl() < minVolume) {
+			Log.i(TAG, "Not recording flow: "
+					+ "volume (" + ended.getVolumeMl() + " mL) is less than minimum "
+					+ "(" + minVolume + " mL)");
+			return;
+		}
+		Log.d(TAG, "Recording drink for flow: " + ended);
+		Log.d(TAG, "Tap: " + ended.getTap());
+		mApiManager.recordDrinkAsync(ended);
+	}
 
-  private void updateFromPreferences() {
-    final boolean runCore = mConfig.getRunCore();
-    if (runCore) {
-      debugNotice("Running core!");
-      mFlowManager.addFlowListener(mFlowListener);
-      startForeground(NOTIFICATION_FOREGROUND, buildForegroundNotification());
-    } else {
-      debugNotice("Stopping core.");
-      mFlowManager.removeFlowListener(mFlowListener);
-      mCore.stop();
-      stopForeground(true);
-    }
-  }
+	private void debugNotice(String message) {
+		Log.d(TAG, message);
+	}
 
-  private Notification buildForegroundNotification() {
-    final Intent intent = new Intent(this, HomeActivity.class);
-    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-        PendingIntent.FLAG_CANCEL_CURRENT);
-    final Notification notification = Utils.buildNotification(new Notification.Builder(this)
-        .setOngoing(true)
-        .setSmallIcon(R.drawable.icon)
-        .setWhen(System.currentTimeMillis())
-        .setContentTitle(getString(R.string.kegbot_core_running))
-        .setContentIntent(pendingIntent));
-    return notification;
-  }
-
-  /**
-   * @param ended
-   */
-  private void recordDrinkForFlow(final Flow ended) {
-    long minVolume = mConfig.getMinimumVolumeMl();
-    if (ended.getVolumeMl() < minVolume) {
-      Log.i(TAG, "Not recording flow: "
-          + "volume (" + ended.getVolumeMl() + " mL) is less than minimum "
-          + "(" + minVolume + " mL)");
-      return;
-    }
-    Log.d(TAG, "Recording drink for flow: " + ended);
-    Log.d(TAG, "Tap: " + ended.getTap());
-    mApiManager.recordDrinkAsync(ended);
-  }
-
-  private void debugNotice(String message) {
-    Log.d(TAG, message);
-  }
+	/**
+	 * Binder interface to this service. Local binds only.
+	 */
+	public class LocalBinder extends Binder {
+		public KegbotCoreService getService() {
+			return KegbotCoreService.this;
+		}
+	}
 
 }

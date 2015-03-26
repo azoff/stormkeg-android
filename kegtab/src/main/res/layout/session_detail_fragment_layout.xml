@@ -26,89 +26,89 @@
               android:minHeight="64dip"
               android:orientation="vertical">
 
-    <!-- Header -->
+	<!-- Header -->
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="top"
-        android:orientation="horizontal">
+	<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:gravity="top"
+			android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/sessionSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Current Session"
-            android:textColor="#888"
-            style="@style/header2"/>
+		<TextView
+				android:id="@+id/sessionSubtitle"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="Current Session"
+				android:textColor="#888"
+				style="@style/header2"/>
 
-        <TextView
-            android:id="@+id/sessionTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="24dip"
-            android:textStyle="bold"/>
-    </LinearLayout>
+		<TextView
+				android:id="@+id/sessionTitle"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textSize="24dip"
+				android:textStyle="bold"/>
+	</LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dip"
-        android:background="#1FFFFFFF"/>
+	<View
+			android:layout_width="match_parent"
+			android:layout_height="2dip"
+			android:background="#1FFFFFFF"/>
 
-    <!-- Rest of content -->
+	<!-- Rest of content -->
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+	<HorizontalScrollView
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center|left"
-            android:orientation="horizontal">
+		<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="match_parent"
+				android:gravity="center|left"
+				android:orientation="horizontal">
 
-            <!-- Num Drinkers -->
+			<!-- Num Drinkers -->
 
-            <org.kegbot.app.view.BadgeView
-                android:id="@+id/numDrinkersBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dip"
-                android:background="@color/black20pct">
-            </org.kegbot.app.view.BadgeView>
+			<org.kegbot.app.view.BadgeView
+					android:id="@+id/numDrinkersBadge"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_margin="10dip"
+					android:background="@color/black20pct">
+			</org.kegbot.app.view.BadgeView>
 
-            <org.kegbot.app.view.BadgeView
-                android:id="@+id/sessionVolumeBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dip"
-                android:background="@color/black20pct">
-            </org.kegbot.app.view.BadgeView>
+			<org.kegbot.app.view.BadgeView
+					android:id="@+id/sessionVolumeBadge"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_margin="10dip"
+					android:background="@color/black20pct">
+			</org.kegbot.app.view.BadgeView>
 
-            <org.kegbot.app.view.BadgeView
-                android:id="@+id/sessionDrinker1Badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dip"
-                android:background="@color/black20pct">
-            </org.kegbot.app.view.BadgeView>
+			<org.kegbot.app.view.BadgeView
+					android:id="@+id/sessionDrinker1Badge"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_margin="10dip"
+					android:background="@color/black20pct">
+			</org.kegbot.app.view.BadgeView>
 
-            <org.kegbot.app.view.BadgeView
-                android:id="@+id/sessionDrinker2Badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dip"
-                android:background="@color/black20pct">
-            </org.kegbot.app.view.BadgeView>
+			<org.kegbot.app.view.BadgeView
+					android:id="@+id/sessionDrinker2Badge"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_margin="10dip"
+					android:background="@color/black20pct">
+			</org.kegbot.app.view.BadgeView>
 
-            <org.kegbot.app.view.BadgeView
-                android:id="@+id/sessionDrinker3Badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dip"
-                android:background="@color/black20pct">
-            </org.kegbot.app.view.BadgeView>
-        </LinearLayout>
-    </HorizontalScrollView>
+			<org.kegbot.app.view.BadgeView
+					android:id="@+id/sessionDrinker3Badge"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_margin="10dip"
+					android:background="@color/black20pct">
+			</org.kegbot.app.view.BadgeView>
+		</LinearLayout>
+	</HorizontalScrollView>
 
 </LinearLayout>

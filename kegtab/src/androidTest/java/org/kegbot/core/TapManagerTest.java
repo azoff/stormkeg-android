@@ -19,10 +19,8 @@
 package org.kegbot.core;
 
 import android.test.InstrumentationTestCase;
-
 import com.google.common.collect.Sets;
 import com.squareup.otto.Bus;
-
 import org.kegbot.app.config.ConfigurationStore;
 import org.kegbot.proto.Models.Controller;
 import org.kegbot.proto.Models.FlowMeter;
@@ -31,9 +29,7 @@ import org.kegbot.proto.Models.KegTap;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link TapManager}.
@@ -42,68 +38,68 @@ import static org.mockito.Mockito.when;
  */
 public class TapManagerTest extends InstrumentationTestCase {
 
-  private TapManager mTapManager;
-  private Bus mMockBus;
-  private ConfigurationStore mMockConfigStore;
+	private TapManager mTapManager;
+	private Bus mMockBus;
+	private ConfigurationStore mMockConfigStore;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
 
-    // http://stackoverflow.com/q/12267572
-    System.setProperty("dexmaker.dexcache",
-        getInstrumentation().getTargetContext().getCacheDir().getPath());
+		// http://stackoverflow.com/q/12267572
+		System.setProperty("dexmaker.dexcache",
+				getInstrumentation().getTargetContext().getCacheDir().getPath());
 
-    mMockBus = mock(Bus.class);
-    mMockConfigStore = mock(ConfigurationStore.class);
-    mTapManager = new TapManager(mMockBus, mMockConfigStore);
-  }
+		mMockBus = mock(Bus.class);
+		mMockConfigStore = mock(ConfigurationStore.class);
+		mTapManager = new TapManager(mMockBus, mMockConfigStore);
+	}
 
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
+	@Override
+	protected void tearDown() throws Exception {
+		super.tearDown();
+	}
 
-  @SuppressWarnings("deprecation")
-  public void testBasics() {
-    assertEquals(0, mTapManager.getTaps().size());
-    assertEquals(0, mTapManager.getVisibleTaps().size());
+	@SuppressWarnings("deprecation")
+	public void testBasics() {
+		assertEquals(0, mTapManager.getTaps().size());
+		assertEquals(0, mTapManager.getVisibleTaps().size());
 
-    final KegTap tap = KegTap.newBuilder()
-        .setId(1)
-        .setName("Test Tap")
-        .setMeter(FlowMeter.newBuilder()
-            .setId(1)
-            .setName("test.flow0")
-            .setPortName("flow0")
-            .setTicksPerMl(1.0f)
-            .setController(Controller.newBuilder()
-                .setId(1)
-                .setName("test")
-                .build())
-            .build())
-        .build();
+		final KegTap tap = KegTap.newBuilder()
+				.setId(1)
+				.setName("Test Tap")
+				.setMeter(FlowMeter.newBuilder()
+						.setId(1)
+						.setName("test.flow0")
+						.setPortName("flow0")
+						.setTicksPerMl(1.0f)
+						.setController(Controller.newBuilder()
+								.setId(1)
+								.setName("test")
+								.build())
+						.build())
+				.build();
 
-    mTapManager.addTap(tap);
+		mTapManager.addTap(tap);
 
-    assertEquals(Collections.singletonList(tap), mTapManager.getTaps());
-    assertEquals(Collections.singletonList(tap), mTapManager.getVisibleTaps());
-    assertNull(mTapManager.getTapForMeterName("unknown"));
-    assertSame(tap, mTapManager.getTapForMeterName("test.flow0"));
+		assertEquals(Collections.singletonList(tap), mTapManager.getTaps());
+		assertEquals(Collections.singletonList(tap), mTapManager.getVisibleTaps());
+		assertNull(mTapManager.getTapForMeterName("unknown"));
+		assertSame(tap, mTapManager.getTapForMeterName("test.flow0"));
 
-    final Set<String> hiddenTaps = Sets.newHashSet();
-    hiddenTaps.add("1");
-    hiddenTaps.add("2"); // bogus tap id, preserved across add/remove
-    when(mMockConfigStore.getStringSet(
-        TapManager.KEY_HIDDEN_TAP_IDS, Collections.<String>emptySet()))
-        .thenReturn(hiddenTaps);
+		final Set<String> hiddenTaps = Sets.newHashSet();
+		hiddenTaps.add("1");
+		hiddenTaps.add("2"); // bogus tap id, preserved across add/remove
+		when(mMockConfigStore.getStringSet(
+				TapManager.KEY_HIDDEN_TAP_IDS, Collections.<String>emptySet()))
+				.thenReturn(hiddenTaps);
 
-    assertEquals(Collections.singletonList(tap), mTapManager.getTaps());
-    assertEquals(0, mTapManager.getVisibleTaps().size());
+		assertEquals(Collections.singletonList(tap), mTapManager.getTaps());
+		assertEquals(0, mTapManager.getVisibleTaps().size());
 
-    mTapManager.setTapVisibility(tap, true);
-    verify(mMockConfigStore).putStringSet(
-        TapManager.KEY_HIDDEN_TAP_IDS, Collections.singleton("2"));
-  }
+		mTapManager.setTapVisibility(tap, true);
+		verify(mMockConfigStore).putStringSet(
+				TapManager.KEY_HIDDEN_TAP_IDS, Collections.singleton("2"));
+	}
 
 }

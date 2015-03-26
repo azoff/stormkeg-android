@@ -27,14 +27,14 @@ import org.kegbot.core.Flow;
  */
 public class FlowUpdateEvent implements Event {
 
-  private final Flow mFlow;
+	private final Flow mFlow;
 
-  public FlowUpdateEvent(Flow flow) {
-    mFlow = flow;
-  }
+	public FlowUpdateEvent(Flow flow) {
+		mFlow = flow;
+	}
 
-  public Flow getFlow() {
-    return mFlow;
-  }
+	public Flow getFlow() {
+		return mFlow;
+	}
 
 }

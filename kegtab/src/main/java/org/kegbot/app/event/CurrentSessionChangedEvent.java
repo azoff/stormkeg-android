@@ -30,25 +30,25 @@ import javax.annotation.Nullable;
  */
 public class CurrentSessionChangedEvent implements Event {
 
-  @Nullable
-  private final Session mSession;
+	@Nullable
+	private final Session mSession;
 
-  @Nullable
-  private final JsonNode mSessionStats;
+	@Nullable
+	private final JsonNode mSessionStats;
 
-  public CurrentSessionChangedEvent(@Nullable Session session, @Nullable JsonNode sessionStats) {
-    mSession = session;
-    mSessionStats = sessionStats;
-  }
+	public CurrentSessionChangedEvent(@Nullable Session session, @Nullable JsonNode sessionStats) {
+		mSession = session;
+		mSessionStats = sessionStats;
+	}
 
-  @Nullable
-  public Session getSession() {
-    return mSession;
-  }
+	@Nullable
+	public Session getSession() {
+		return mSession;
+	}
 
-  @Nullable
-  public JsonNode getSessionStats() {
-    return mSessionStats;
-  }
+	@Nullable
+	public JsonNode getSessionStats() {
+		return mSessionStats;
+	}
 
 }

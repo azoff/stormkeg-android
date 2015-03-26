@@ -24,46 +24,46 @@
                 android:background="@drawable/shape_rounded_rect"
                 android:orientation="vertical">
 
-    <!-- Tap Name Header -->
+	<!-- Tap Name Header -->
 
-    <TextView
-        android:id="@+id/tapTitle"
-        style="@style/header"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"/>
+	<TextView
+			android:id="@+id/tapTitle"
+			style="@style/header"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentTop="true"/>
 
-    <TextView
-        android:id="@+id/tapSubtitle"
-        style="@style/subheader"
-        android:layout_toRightOf="@+id/tapTitle"
-        android:layout_alignBaseline="@+id/tapTitle"/>
+	<TextView
+			android:id="@+id/tapSubtitle"
+			style="@style/subheader"
+			android:layout_toRightOf="@+id/tapTitle"
+			android:layout_alignBaseline="@+id/tapTitle"/>
 
-    <View
-        android:id="@+id/tap_detail_divider"
-        android:layout_width="match_parent"
-        android:layout_height="2dip"
-        android:layout_below="@+id/tapTitle"
-        android:background="#1FFFFFFF"/>
+	<View
+			android:id="@+id/tap_detail_divider"
+			android:layout_width="match_parent"
+			android:layout_height="2dip"
+			android:layout_below="@+id/tapTitle"
+			android:background="#1FFFFFFF"/>
 
-    <!-- Inner contents -->
+	<!-- Inner contents -->
 
-    <ViewFlipper
-        android:id="@+id/tapStatusFlipper"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/tap_detail_divider">
+	<ViewFlipper
+			android:id="@+id/tapStatusFlipper"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_below="@+id/tap_detail_divider">
 
-        <include
-            android:id="@+id/tapLoadingView"
-            layout="@layout/tap_detail_loading"/>
+		<include
+				android:id="@+id/tapLoadingView"
+				layout="@layout/tap_detail_loading"/>
 
-        <include
-            android:id="@+id/tapInactiveView"
-            layout="@layout/tap_detail_inactive"/>
+		<include
+				android:id="@+id/tapInactiveView"
+				layout="@layout/tap_detail_inactive"/>
 
-        <include
-            android:id="@+id/tapActiveView"
-            layout="@layout/tap_detail_loaded"/>
-    </ViewFlipper>
+		<include
+				android:id="@+id/tapActiveView"
+				layout="@layout/tap_detail_loaded"/>
+	</ViewFlipper>
 
 </RelativeLayout>

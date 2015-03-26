@@ -24,42 +24,41 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import org.kegbot.app.R;
 
 public class SetupTextFragment extends Fragment {
 
-  private static final String KEY_TITLE = "title";
-  private static final String KEY_DESCRIPTION = "description";
+	private static final String KEY_TITLE = "title";
+	private static final String KEY_DESCRIPTION = "description";
 
-  public static SetupTextFragment withText(int titleResource, int descriptionResource) {
-    final SetupTextFragment frag = new SetupTextFragment();
-    frag.setText(titleResource, descriptionResource);
-    return frag;
-  }
+	public static SetupTextFragment withText(int titleResource, int descriptionResource) {
+		final SetupTextFragment frag = new SetupTextFragment();
+		frag.setText(titleResource, descriptionResource);
+		return frag;
+	}
 
-  void setText(int titleResource, int descriptionResource) {
-    Bundle args = getArguments();
-    if (args == null) {
-      args = new Bundle();
-    }
+	void setText(int titleResource, int descriptionResource) {
+		Bundle args = getArguments();
+		if (args == null) {
+			args = new Bundle();
+		}
 
-    args.putInt(KEY_TITLE, titleResource);
-    args.putInt(KEY_DESCRIPTION, descriptionResource);
+		args.putInt(KEY_TITLE, titleResource);
+		args.putInt(KEY_DESCRIPTION, descriptionResource);
 
-    setArguments(args);
-  }
+		setArguments(args);
+	}
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final View view = inflater.inflate(R.layout.setup_text_fragment, null);
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		final View view = inflater.inflate(R.layout.setup_text_fragment, null);
 
-    final TextView titleView = (TextView) view.findViewById(R.id.setupTitleText);
-    titleView.setText(getArguments().getInt(KEY_TITLE, 0));
-    final TextView descriptionView = (TextView) view.findViewById(R.id.setupDescriptionText);
-    descriptionView.setText(getArguments().getInt(KEY_DESCRIPTION, 0));
+		final TextView titleView = (TextView) view.findViewById(R.id.setupTitleText);
+		titleView.setText(getArguments().getInt(KEY_TITLE, 0));
+		final TextView descriptionView = (TextView) view.findViewById(R.id.setupDescriptionText);
+		descriptionView.setText(getArguments().getInt(KEY_DESCRIPTION, 0));
 
-    return view;
-  }
+		return view;
+	}
 
 }

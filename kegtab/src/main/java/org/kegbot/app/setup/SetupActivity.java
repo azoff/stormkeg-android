@@ -18,26 +18,15 @@
  */
 package org.kegbot.app.setup;
 
-import android.app.ActionBar;
-import android.app.Activity;
-import android.app.DialogFragment;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.app.*;
 import android.content.DialogInterface;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.os.*;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-
 import com.google.common.collect.Lists;
-
 import org.kegbot.app.KegbotApplication;
 import org.kegbot.app.R;
 import org.kegbot.app.service.KegbotCoreService;
@@ -49,262 +38,252 @@ import java.util.List;
  */
 public class SetupActivity extends Activity {
 
-  private static final String TAG = SetupActivity.class.getSimpleName();
+	public static final int SETUP_VERSION = 6;
+	public static final String EXTRA_REASON = "reason";
+	public static final String EXTRA_REASON_UPGRADE = "upgrade";
+	public static final String EXTRA_REASON_USER = "user";
+	private static final String TAG = SetupActivity.class.getSimpleName();
+	private static final int MESSAGE_GO_BACK = 100;
+	/**
+	 * Listener for the on-screen "back" button. Currently just simulates a "back" press.
+	 */
+	private final OnClickListener mBackListener = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			Log.d(TAG, "Back pressed.");
+			mHandler.sendEmptyMessage(MESSAGE_GO_BACK);
+		}
+	};
+	private static final int MESSAGE_START_VALIDATION = 101;
+	private final OnClickListener mNextListener = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			Log.d(TAG, "Next pressed.");
+			mHandler.sendEmptyMessage(MESSAGE_START_VALIDATION);
+		}
+	};
+	private static final int MESSAGE_VALIDATION_ABORTED = 102;
+	private final Handler mHandler = new Handler(Looper.getMainLooper()) {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case MESSAGE_GO_BACK:
+					dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
+					dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK));
+					break;
+				case MESSAGE_START_VALIDATION:
+					startValidation();
+					break;
+				case MESSAGE_VALIDATION_ABORTED:
+					cancelValidation();
+					showAlertDialog("Verification aborted; please try again.");
+					break;
+				default:
+					super.handleMessage(msg);
+			}
+		}
+	};
+	private final List<SetupStep> mTaskHistory = Lists.newArrayList();
+	private final SetupState mSetupState = new SetupState() {
+		@Override
+		public void setNextButtonEnabled(boolean enabled) {
+			mNextButton.setEnabled(enabled);
+		}
 
-  public static final int SETUP_VERSION = 6;
+		@Override
+		public void setNextButtonText(int resource) {
+			mNextButton.setText(resource);
+		}
+	};
+	private SetupStep mCurrentStep = null;
+	private Button mBackButton;
+	private Button mNextButton;
+	private DialogFragment mDialog;
+	private AsyncTask<Void, Void, Void> mValidatorTask;
 
-  private SetupStep mCurrentStep = null;
-  private final List<SetupStep> mTaskHistory = Lists.newArrayList();
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.setup_activity);
 
-  private Button mBackButton;
-  private Button mNextButton;
-  private DialogFragment mDialog;
+		KegbotCoreService.stopService(this);
+	}
 
-  private AsyncTask<Void, Void, Void> mValidatorTask;
+	@Override
+	protected void onResume() {
+		super.onResume();
+		final ActionBar actionBar = getActionBar();
+		if (actionBar != null) {
+			actionBar.hide();
+		}
+		mBackButton = (Button) findViewById(R.id.setupBackButton);
+		mBackButton.setOnClickListener(mBackListener);
+		mNextButton = (Button) findViewById(R.id.setupNextButton);
+		mNextButton.setOnClickListener(mNextListener);
 
-  public static final String EXTRA_REASON = "reason";
-  public static final String EXTRA_REASON_UPGRADE = "upgrade";
-  public static final String EXTRA_REASON_USER = "user";
+		if (mCurrentStep == null) {
+			final String reason = getIntent().getStringExtra(EXTRA_REASON);
+			final SetupStep initialStep;
+			if (EXTRA_REASON_USER.equals(reason)) {
+				initialStep = new SetupSelectBackendStep(mSetupState);
+			} else if (EXTRA_REASON_UPGRADE.equals(reason)) {
+				initialStep = new SetupWelcomeStep(mSetupState);
+			} else {
+				initialStep = new SetupWelcomeStep(mSetupState);
+			}
+			setTask(initialStep);
+		}
+	}
 
-  private static final int MESSAGE_GO_BACK = 100;
-  private static final int MESSAGE_START_VALIDATION = 101;
-  private static final int MESSAGE_VALIDATION_ABORTED = 102;
+	private void showAlertDialog(String message) {
+		hideDialog();
+		final DialogFragment dialog = SetupAlertDialogFragment.newInstance(message);
+		dialog.show(getFragmentManager(), "dialog");
+	}
 
-  public interface SetupState {
-    public void setNextButtonEnabled(boolean enabled);
+	private void showProgressDialog() {
+		hideDialog();
+		mDialog = new SetupProgressDialogFragment(new SetupProgressDialogFragment.Listener() {
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				mHandler.sendEmptyMessage(MESSAGE_VALIDATION_ABORTED);
+			}
+		});
+		mDialog.show(getFragmentManager(), "dialog");
+	}
 
-    public void setNextButtonText(int resource);
-  }
+	private void hideDialog() {
+		if (mDialog != null) {
+			mDialog.dismiss();
+			mDialog = null;
+		}
+	}
 
-  private final SetupState mSetupState = new SetupState() {
-    @Override
-    public void setNextButtonEnabled(boolean enabled) {
-      mNextButton.setEnabled(enabled);
-    }
+	private void startValidation() {
+		Log.d(TAG, "Starting validation: " + mCurrentStep);
+		mValidatorTask = new AsyncTask<Void, Void, Void>() {
 
-    @Override
-    public void setNextButtonText(int resource) {
-      mNextButton.setText(resource);
-    }
-  };
+			private SetupValidationException mValidationError;
+			private SetupStep mNextStep;
 
-  private final Handler mHandler = new Handler(Looper.getMainLooper()) {
-    @Override
-    public void handleMessage(Message msg) {
-      switch (msg.what) {
-        case MESSAGE_GO_BACK:
-          dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
-          dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK));
-          break;
-        case MESSAGE_START_VALIDATION:
-          startValidation();
-          break;
-        case MESSAGE_VALIDATION_ABORTED:
-          cancelValidation();
-          showAlertDialog("Verification aborted; please try again.");
-          break;
-        default:
-          super.handleMessage(msg);
-      }
-    }
-  };
+			@Override
+			protected void onPreExecute() {
+				showProgressDialog();
+			}
 
-  /**
-   * Listener for the on-screen "back" button. Currently just simulates a "back" press.
-   */
-  private final OnClickListener mBackListener = new OnClickListener() {
-    @Override
-    public void onClick(View v) {
-      Log.d(TAG, "Back pressed.");
-      mHandler.sendEmptyMessage(MESSAGE_GO_BACK);
-    }
-  };
+			@Override
+			protected Void doInBackground(Void... params) {
+				mValidationError = null;
+				mNextStep = null;
 
-  private final OnClickListener mNextListener = new OnClickListener() {
-    @Override
-    public void onClick(View v) {
-      Log.d(TAG, "Next pressed.");
-      mHandler.sendEmptyMessage(MESSAGE_START_VALIDATION);
-    }
-  };
+				try {
+					mNextStep = mCurrentStep.advance();
+				} catch (SetupValidationException e) {
+					mValidationError = e;
+				}
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.setup_activity);
+				return null;
+			}
 
-    KegbotCoreService.stopService(this);
-  }
+			@Override
+			protected void onPostExecute(Void avoid) {
+				if (!isCancelled()) {
+					hideDialog();
+					if (mValidationError == null) {
+						onValidationSuccess(mNextStep);
+					} else {
+						onValidationFailure(mValidationError);
+					}
+				}
+			}
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-    final ActionBar actionBar = getActionBar();
-    if (actionBar != null) {
-      actionBar.hide();
-    }
-    mBackButton = (Button) findViewById(R.id.setupBackButton);
-    mBackButton.setOnClickListener(mBackListener);
-    mNextButton = (Button) findViewById(R.id.setupNextButton);
-    mNextButton.setOnClickListener(mNextListener);
+		};
+		mValidatorTask.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+	}
 
-    if (mCurrentStep == null) {
-      final String reason = getIntent().getStringExtra(EXTRA_REASON);
-      final SetupStep initialStep;
-      if (EXTRA_REASON_USER.equals(reason)) {
-        initialStep = new SetupSelectBackendStep(mSetupState);
-      } else if (EXTRA_REASON_UPGRADE.equals(reason)) {
-        initialStep = new SetupWelcomeStep(mSetupState);
-      } else {
-        initialStep = new SetupWelcomeStep(mSetupState);
-      }
-      setTask(initialStep);
-    }
-  }
+	private void cancelValidation() {
+		if (mValidatorTask != null) {
+			mValidatorTask.cancel(true);
+		}
+	}
 
-  private void showAlertDialog(String message) {
-    hideDialog();
-    final DialogFragment dialog = SetupAlertDialogFragment.newInstance(message);
-    dialog.show(getFragmentManager(), "dialog");
-  }
+	private void onValidationFailure(final SetupValidationException error) {
+		Log.d(TAG, "Validation unsuccessful: " + error, error);
+		showAlertDialog(error.getMessage());
+	}
 
-  private void showProgressDialog() {
-    hideDialog();
-    mDialog = new SetupProgressDialogFragment(new SetupProgressDialogFragment.Listener() {
-      @Override
-      public void onCancel(DialogInterface dialog) {
-        mHandler.sendEmptyMessage(MESSAGE_VALIDATION_ABORTED);
-      }
-    });
-    mDialog.show(getFragmentManager(), "dialog");
-  }
+	private void onValidationSuccess(final SetupStep nextStep) {
+		Log.d(TAG, "Validation successful, next step=" + nextStep);
+		setTask(nextStep);
+	}
 
-  private void hideDialog() {
-    if (mDialog != null) {
-      mDialog.dismiss();
-      mDialog = null;
-    }
-  }
+	private void setTask(SetupStep step) {
+		if (step == null) {
+			Log.d(TAG, "Null task, finishing.");
+			KegbotApplication.get(this).getConfig().setSetupVersion(SETUP_VERSION);
+			setResult(RESULT_OK);
+			mTaskHistory.clear();
+			finish();
+			return;
+		}
 
-  private void startValidation() {
-    Log.d(TAG, "Starting validation: " + mCurrentStep);
-    mValidatorTask = new AsyncTask<Void, Void, Void>() {
+		Log.d(TAG, "Loading SetupStep: " + step);
+		step.onDisplay();
+		mCurrentStep = step;
 
-      private SetupValidationException mValidationError;
-      private SetupStep mNextStep;
+		mTaskHistory.add(step);
+		Fragment contentFragment = step.getContentFragment();
+		Fragment controlsFragment = step.getControlsFragment();
+		if (controlsFragment == null) {
+			controlsFragment = new SetupEmptyFragment();
+		}
 
-      @Override
-      protected void onPreExecute() {
-        showProgressDialog();
-      }
+		FragmentManager fragmentManager = getFragmentManager();
+		final FragmentTransaction transaction = fragmentManager.beginTransaction();
+		transaction.replace(R.id.setupContentFragment, contentFragment);
+		transaction.replace(R.id.setupControlsFragment, controlsFragment);
+		transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+		transaction.addToBackStack(null);
+		transaction.commit();
+	}
 
-      @Override
-      protected Void doInBackground(Void... params) {
-        mValidationError = null;
-        mNextStep = null;
+	private void popTask() {
+		mTaskHistory.remove(mTaskHistory.size() - 1);
+		if (!mTaskHistory.isEmpty()) {
+			mCurrentStep = mTaskHistory.get(mTaskHistory.size() - 1);
+		} else {
+			Log.d(TAG, "Popped last step.");
+		}
+	}
 
-        try {
-          mNextStep = mCurrentStep.advance();
-        } catch (SetupValidationException e) {
-          mValidationError = e;
-        }
+	@Override
+	public void onBackPressed() {
+		popTask();
+		mCurrentStep.onDisplay();
+		if (mTaskHistory.isEmpty()) {
+			setResult(RESULT_CANCELED);
+			finish();
+		} else {
+			super.onBackPressed();
+		}
+	}
 
-        return null;
-      }
+	@Override
+	protected void onStart() {
+		super.onStart();
+		KegbotCoreService.stopService(this);
+	}
 
-      @Override
-      protected void onPostExecute(Void avoid) {
-        if (!isCancelled()) {
-          hideDialog();
-          if (mValidationError == null) {
-            onValidationSuccess(mNextStep);
-          } else {
-            onValidationFailure(mValidationError);
-          }
-        }
-      }
+	@Override
+	protected void onStop() {
+		hideDialog();
+		super.onStop();
+	}
 
-    };
-    mValidatorTask.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-  }
+	public interface SetupState {
+		public void setNextButtonEnabled(boolean enabled);
 
-  private void cancelValidation() {
-    if (mValidatorTask != null) {
-      mValidatorTask.cancel(true);
-    }
-  }
-
-  private void onValidationFailure(final SetupValidationException error) {
-    Log.d(TAG, "Validation unsuccessful: " + error, error);
-    showAlertDialog(error.getMessage());
-  }
-
-  private void onValidationSuccess(final SetupStep nextStep) {
-    Log.d(TAG, "Validation successful, next step=" + nextStep);
-    setTask(nextStep);
-  }
-
-  private void setTask(SetupStep step) {
-    if (step == null) {
-      Log.d(TAG, "Null task, finishing.");
-      KegbotApplication.get(this).getConfig().setSetupVersion(SETUP_VERSION);
-      setResult(RESULT_OK);
-      mTaskHistory.clear();
-      finish();
-      return;
-    }
-
-    Log.d(TAG, "Loading SetupStep: " + step);
-    step.onDisplay();
-    mCurrentStep = step;
-
-    mTaskHistory.add(step);
-    Fragment contentFragment = step.getContentFragment();
-    Fragment controlsFragment = step.getControlsFragment();
-    if (controlsFragment == null) {
-      controlsFragment = new SetupEmptyFragment();
-    }
-
-    FragmentManager fragmentManager = getFragmentManager();
-    final FragmentTransaction transaction = fragmentManager.beginTransaction();
-    transaction.replace(R.id.setupContentFragment, contentFragment);
-    transaction.replace(R.id.setupControlsFragment, controlsFragment);
-    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-    transaction.addToBackStack(null);
-    transaction.commit();
-  }
-
-  private void popTask() {
-    mTaskHistory.remove(mTaskHistory.size() - 1);
-    if (!mTaskHistory.isEmpty()) {
-      mCurrentStep = mTaskHistory.get(mTaskHistory.size() - 1);
-    } else {
-      Log.d(TAG, "Popped last step.");
-    }
-  }
-
-  @Override
-  public void onBackPressed() {
-    popTask();
-    mCurrentStep.onDisplay();
-    if (mTaskHistory.isEmpty()) {
-      setResult(RESULT_CANCELED);
-      finish();
-    } else {
-      super.onBackPressed();
-    }
-  }
-
-  @Override
-  protected void onStart() {
-    super.onStart();
-    KegbotCoreService.stopService(this);
-  }
-
-  @Override
-  protected void onStop() {
-    hideDialog();
-    super.onStop();
-  }
+		public void setNextButtonText(int resource);
+	}
 
 }

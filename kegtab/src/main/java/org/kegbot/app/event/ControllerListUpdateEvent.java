@@ -29,14 +29,14 @@ import java.util.List;
  */
 public class ControllerListUpdateEvent implements Event {
 
-  private final List<Controller> mControllers;
+	private final List<Controller> mControllers;
 
-  public ControllerListUpdateEvent(List<Controller> controllers) {
-    mControllers = controllers;
-  }
+	public ControllerListUpdateEvent(List<Controller> controllers) {
+		mControllers = controllers;
+	}
 
-  public List<Controller> getEvents() {
-    return mControllers;
-  }
+	public List<Controller> getEvents() {
+		return mControllers;
+	}
 
 }

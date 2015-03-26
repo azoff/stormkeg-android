@@ -26,12 +26,7 @@ import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
 import android.net.Uri;
 import android.nfc.NfcAdapter;
-import android.nfc.tech.IsoDep;
-import android.nfc.tech.MifareClassic;
-import android.nfc.tech.MifareUltralight;
-import android.nfc.tech.NfcA;
-import android.nfc.tech.NfcB;
-import android.nfc.tech.NfcF;
+import android.nfc.tech.*;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -39,11 +34,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-
 import com.google.common.collect.Lists;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
-
 import org.kegbot.app.alert.AlertActivity;
 import org.kegbot.app.alert.AlertCancelledEvent;
 import org.kegbot.app.alert.AlertCore;
@@ -62,200 +55,197 @@ import java.util.List;
  */
 public class CoreActivity extends Activity {
 
-  private static final String TAG = CoreActivity.class.getSimpleName();
+	private static final String TAG = CoreActivity.class.getSimpleName();
+	private final Object mCoreListener = new Object() {
+		@Subscribe
+		public void onAlertPosted(AlertPostedEvent event) {
+			Log.d(TAG, "Got alert posted");
+			rebuildAlerts();
+		}
 
-  private Bus mBus;
-  private AppConfiguration mConfig; // TODO(mikey):remove me after moving checkin info elsewhere
-  private AlertCore mAlertCore;
-  private final List<Alert> mCachedAlerts = Lists.newArrayList();
+		@Subscribe
+		public void onAlertCancelledEvent(AlertCancelledEvent event) {
+			rebuildAlerts();
+		}
+	};
+	private final List<Alert> mCachedAlerts = Lists.newArrayList();
+	private Bus mBus;
+	private AppConfiguration mConfig; // TODO(mikey):remove me after moving checkin info elsewhere
+	private AlertCore mAlertCore;
+	private Menu mMenu;
+	private NfcAdapter mNfcAdapter;
 
-  private Menu mMenu;
-  private NfcAdapter mNfcAdapter;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		KegbotCoreService.startService(this);
 
-  private final Object mCoreListener = new Object() {
-    @Subscribe
-    public void onAlertPosted(AlertPostedEvent event) {
-      Log.d(TAG, "Got alert posted");
-      rebuildAlerts();
-    }
+		mConfig = KegbotCore.getInstance(this).getConfiguration();
+		mBus = KegbotCore.getInstance(this).getBus();
+		mAlertCore = KegbotCore.getInstance(this).getAlertCore();
+	}
 
-    @Subscribe
-    public void onAlertCancelledEvent(AlertCancelledEvent event) {
-      rebuildAlerts();
-    }
-  };
+	@Override
+	protected void onStart() {
+		super.onStart();
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    KegbotCoreService.startService(this);
+		mConfig = KegbotCore.getInstance(this).getConfiguration();
+		mBus = KegbotCore.getInstance(this).getBus();
+		mAlertCore = KegbotCore.getInstance(this).getAlertCore();
+		mBus.register(mCoreListener);
 
-    mConfig = KegbotCore.getInstance(this).getConfiguration();
-    mBus = KegbotCore.getInstance(this).getBus();
-    mAlertCore = KegbotCore.getInstance(this).getAlertCore();
-  }
+		//enterImmersiveMode();
+	}
 
-  @Override
-  protected void onStart() {
-    super.onStart();
+	@Override
+	protected void onStop() {
+		mBus.unregister(mCoreListener);
+		mMenu = null;
+		super.onStop();
+	}
 
-    mConfig = KegbotCore.getInstance(this).getConfiguration();
-    mBus = KegbotCore.getInstance(this).getBus();
-    mAlertCore = KegbotCore.getInstance(this).getAlertCore();
-    mBus.register(mCoreListener);
+	@Override
+	protected void onResume() {
+		setupActionBar();
+		if (mConfig.keepScreenOn()) {
+			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		}
+		registerNfcDispatch();
+		KegbotCoreService.startService(this);
+		rebuildAlerts();
+		super.onResume();
+	}
 
-    //enterImmersiveMode();
-  }
+	@Override
+	protected void onPause() {
+		unregisterNfcDispatch();
+		super.onPause();
+	}
 
-  @Override
-  protected void onStop() {
-    mBus.unregister(mCoreListener);
-    mMenu = null;
-    super.onStop();
-  }
+	protected void setupActionBar() {
+		final ActionBar actionBar = getActionBar();
+		if (actionBar != null) {
+			actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_USE_LOGO);
+			actionBar.setTitle("");
+		}
+	}
 
-  @Override
-  protected void onResume() {
-    setupActionBar();
-    if (mConfig.keepScreenOn()) {
-      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    }
-    registerNfcDispatch();
-    KegbotCoreService.startService(this);
-    rebuildAlerts();
-    super.onResume();
-  }
+	private void enterImmersiveMode() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			final View decorView = getWindow().getDecorView();
 
-  @Override
-  protected void onPause() {
-    unregisterNfcDispatch();
-    super.onPause();
-  }
+			decorView.setSystemUiVisibility(
+					View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+							| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+							| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+							| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+							| View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+							| View.SYSTEM_UI_FLAG_IMMERSIVE
+			);
+		}
+	}
 
-  protected void setupActionBar() {
-    final ActionBar actionBar = getActionBar();
-    if (actionBar != null) {
-      actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_USE_LOGO);
-      actionBar.setTitle("");
-    }
-  }
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		mMenu = menu;
+		getMenuInflater().inflate(R.menu.main, menu);
+		rebuildAlerts();
+		return true;
+	}
 
-  private void enterImmersiveMode() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      final View decorView = getWindow().getDecorView();
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				Intent intent = new Intent(this, HomeActivity.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+				return true;
+			case R.id.alertUpdate:
+				Intent marketIntent = new Intent(Intent.ACTION_VIEW);
+				marketIntent.setData(Uri.parse("market://details?id=org.kegbot.app"));
+				PinActivity.startThroughPinActivity(this, marketIntent);
+				return true;
+			case R.id.alertGeneral:
+				AlertActivity.showDialogs(this);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
 
-      decorView.setSystemUiVisibility(
-          View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-              | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-              | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-              | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-              | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-              | View.SYSTEM_UI_FLAG_IMMERSIVE
-      );
-    }
-  }
+	private void rebuildAlerts() {
+		if (mMenu == null) {
+			Log.w(TAG, "No menu, can't rebuild.");
+			return;
+		}
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    mMenu = menu;
-    getMenuInflater().inflate(R.menu.main, menu);
-    rebuildAlerts();
-    return true;
-  }
+		final List<Alert> alerts = mAlertCore.getAlerts();
+		if (mCachedAlerts.equals(alerts)) {
+			Log.d(TAG, "No change to alerts.");
+			return;
+		}
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case android.R.id.home:
-        Intent intent = new Intent(this, HomeActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        return true;
-      case R.id.alertUpdate:
-        Intent marketIntent = new Intent(Intent.ACTION_VIEW);
-        marketIntent.setData(Uri.parse("market://details?id=org.kegbot.app"));
-        PinActivity.startThroughPinActivity(this, marketIntent);
-        return true;
-      case R.id.alertGeneral:
-        AlertActivity.showDialogs(this);
-        return true;
-      default:
-        return super.onOptionsItemSelected(item);
-    }
-  }
+		mCachedAlerts.clear();
+		mCachedAlerts.addAll(alerts);
 
-  private void rebuildAlerts() {
-    if (mMenu == null) {
-      Log.w(TAG, "No menu, can't rebuild.");
-      return;
-    }
+		final MenuItem item = mMenu.findItem(R.id.alertGeneral);
+		if (mCachedAlerts.isEmpty()) {
+			Log.d(TAG, "No alerts, hiding menu.");
+			item.setVisible(false);
+			return;
+		}
 
-    final List<Alert> alerts = mAlertCore.getAlerts();
-    if (mCachedAlerts.equals(alerts)) {
-      Log.d(TAG, "No change to alerts.");
-      return;
-    }
+		item.setVisible(true);
+		if (mCachedAlerts.size() == 1) {
+			item.setTitle(mCachedAlerts.get(0).getTitle());
+		} else {
+			item.setTitle(String.format("%s Alerts", String.valueOf(mCachedAlerts.size())));
+		}
 
-    mCachedAlerts.clear();
-    mCachedAlerts.addAll(alerts);
+		mMenu.findItem(R.id.alertUpdate).setVisible(mConfig.getUpdateAvailable());
+	}
 
-    final MenuItem item = mMenu.findItem(R.id.alertGeneral);
-    if (mCachedAlerts.isEmpty()) {
-      Log.d(TAG, "No alerts, hiding menu.");
-      item.setVisible(false);
-      return;
-    }
+	protected void updateConnectivityAlert(boolean isConnected) {
+		if (mMenu != null) {
+			mMenu.findItem(R.id.alertNetwork).setVisible(!isConnected);
+		}
+	}
 
-    item.setVisible(true);
-    if (mCachedAlerts.size() == 1) {
-      item.setTitle(mCachedAlerts.get(0).getTitle());
-    } else {
-      item.setTitle(String.format("%s Alerts", String.valueOf(mCachedAlerts.size())));
-    }
+	private void registerNfcDispatch() {
+		mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+		if (mNfcAdapter == null) {
+			Log.d(TAG, "NFC is not available.");
+			return;
+		}
 
-    mMenu.findItem(R.id.alertUpdate).setVisible(mConfig.getUpdateAvailable());
-  }
+		final IntentFilter intentFilter = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
+		try {
+			intentFilter.addDataType("*/*");
+		} catch (MalformedMimeTypeException e) {
+			throw new RuntimeException("Error creating NFC filter", e);
+		}
 
-  protected void updateConnectivityAlert(boolean isConnected) {
-    if (mMenu != null) {
-      mMenu.findItem(R.id.alertNetwork).setVisible(!isConnected);
-    }
-  }
+		final String[][] techLists = new String[][]{
+				new String[]{IsoDep.class.getName()},
+				new String[]{MifareClassic.class.getName()},
+				new String[]{MifareUltralight.class.getName()},
+				new String[]{NfcA.class.getName()},
+				new String[]{NfcB.class.getName()},
+				new String[]{NfcF.class.getName()}
+		};
 
-  private void registerNfcDispatch() {
-    mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-    if (mNfcAdapter == null) {
-      Log.d(TAG, "NFC is not available.");
-      return;
-    }
+		final Intent intent = AuthenticatingActivity.getStartForNfcIntent(getApplicationContext());
+		final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		mNfcAdapter.enableForegroundDispatch(this, pendingIntent, null, techLists);
+		Log.d(TAG, "NFC dispatch registered.");
+	}
 
-    final IntentFilter intentFilter = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
-    try {
-      intentFilter.addDataType("*/*");
-    } catch (MalformedMimeTypeException e) {
-      throw new RuntimeException("Error creating NFC filter", e);
-    }
-
-    final String[][] techLists = new String[][]{
-        new String[]{IsoDep.class.getName()},
-        new String[]{MifareClassic.class.getName()},
-        new String[]{MifareUltralight.class.getName()},
-        new String[]{NfcA.class.getName()},
-        new String[]{NfcB.class.getName()},
-        new String[]{NfcF.class.getName()}
-    };
-
-    final Intent intent = AuthenticatingActivity.getStartForNfcIntent(getApplicationContext());
-    final PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-    mNfcAdapter.enableForegroundDispatch(this, pendingIntent, null, techLists);
-    Log.d(TAG, "NFC dispatch registered.");
-  }
-
-  private void unregisterNfcDispatch() {
-    if (mNfcAdapter != null) {
-      mNfcAdapter.disableForegroundDispatch(this);
-      mNfcAdapter = null;
-    }
-  }
+	private void unregisterNfcDispatch() {
+		if (mNfcAdapter != null) {
+			mNfcAdapter.disableForegroundDispatch(this);
+			mNfcAdapter = null;
+		}
+	}
 
 }

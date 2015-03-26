@@ -29,14 +29,14 @@ import java.util.List;
  */
 public class FlowMeterListUpdateEvent implements Event {
 
-  private final List<FlowMeter> mMeters;
+	private final List<FlowMeter> mMeters;
 
-  public FlowMeterListUpdateEvent(List<FlowMeter> meters) {
-    mMeters = meters;
-  }
+	public FlowMeterListUpdateEvent(List<FlowMeter> meters) {
+		mMeters = meters;
+	}
 
-  public List<FlowMeter> getEvents() {
-    return mMeters;
-  }
+	public List<FlowMeter> getEvents() {
+		return mMeters;
+	}
 
 }

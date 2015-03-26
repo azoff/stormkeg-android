@@ -19,161 +19,206 @@
   -->
 <resources>
 
-    <string name="authenticating_begin_title">Authenticating…</string>
-    <string name="authenticating_fail_title">Access Denied!</string>
-    <string name="authenticating_no_access_token">Your access token was not recognized.</string>
-    <string name="authenticating_connection_error">Could not contact the Kegbot server.</string>
-    <string name="hello">Give me a beer!</string>
-    <string name="app_name">Kegbot</string>
-    <string name="events_title">recent events</string>
-    <string name="taps_title">on tap</string>
-    <string name="tap_name"><xliff id="tap_name">%s</xliff>: <xliff id="beverage_name">%s</xliff></string>
-    <string name="empty_tap"><i>empty</i></string>
-    <string name="menu_settings">Settings</string>
-    <string name="menu_manage_taps">Manage Taps</string>
-    <string name="settings_name">Settings</string>
-    <string name="settings_general_header">General</string>
-    <string name="settings_kegerator_header">Kegerator</string>
-    <string name="settings_about_header">About</string>
-    <string name="pour_take_picture">Take Picture</string>
-    <string name="picture_countdown_3">3…</string>
-    <string name="picture_countdown_2">2…</string>
-    <string name="picture_countdown_1">1…</string>
-    <string name="setup_welcome_title">Welcome to Kegbot!</string>
-    <string name="setup_welcome_description">Looks like this is your first time running Kegbot. Cool!\n\nWe\'re going to need a little information to get started. Tap the "Next" button below to continue.</string>
-    <string name="setup_upgrade_title">Upgrade Kegbot</string>
-    <string name="setup_upgrade_description">Kegbot has been updated. Please verify your current settings before continuing. Tap the "Next" button below to continue.</string>
-    <string name="setup_kegbot_url_title">Kegbot URL</string>
-    <string name="setup_kegbot_url_description">We need to talk to your Kegbot system in order to load drinkers, tap status, and other information. Please enter the URL of your Kegbot system.</string>
-    <string name="setup_kegbot_url_url_name">Kegbot URL</string>
-    <string name="setup_kegbot_url_url_description">Enter main URL.</string>
-    <string name="setup_dialog_validate_title">Verifying…</string>
-    <string name="setup_dialog_validate_description">Verifying information, please wait…</string>
-    <string name="setup_log_in_title">Log In</string>
-    <string name="setup_log_in_description">In order to talk to your Kegbot server, the Kegtab application needs an API key.\n\nPlease log in with a manager account in order to accquire an API key for this application. Your password will not be saved.</string>
-    <string name="setup_finished_title">Done!</string>
-    <string name="setup_finished_description">You\'re all set! Your Kegtab is now configured. Press Next to finish. Please drink responsibly.</string>
-    <string name="setup_manager_pin_title">Manager Pin (Optional)</string>
-    <string name="setup_manager_pin_description">Set a manager PIN to prevent unauthorized access to Kegtab application settings.\n\nThis value is only used locally. If you forget the PIN value, you will need to reset Kegtab.</string>
-    <string name="setup_select_backend_title">Configure Data Storage</string>
-    <string name="setup_select_backend_description">Where do you want Kegbot to store data, such as pour records, keg status, and pictures?\n\nUsing internal storage is simpler to set up, but some features require a Kegbot Server.</string>
-    <string name="setup_select_backend_server">Save to Kegbot Server</string>
-    <string name="setup_select_backend_server_description">Link to a Kegbot Server and use it for data storage.</string>
-    <string name="setup_select_backend_local">Use internal storage</string>
-    <string name="setup_select_backend_local_description">Save data locally, without using a web server.</string>
-    <string name="setup_select_backend_local_warning_title">Important Notice</string>
-    <string name="setup_select_backend_local_warning_description">Standalone mode is still an experimental feature.\n\nBecause all data is stored locally and not on a remote server, there is an increased chance that you could lose Kegbot data due to bugs, a lost manager pin, or device failure.</string>
-    <string name="setup_select_backend_local_warning_ok">Continue</string>
-    <string name="camera_discard_picture">Discard</string>
-    <string name="camera_take_another">Re-Take</string>
-    <string name="kegbot_core_running">Kegbot Core is running</string>
-    <string name="beer_me_button">Beer Me!</string>
-    <string name="new_drinker_button">New Drinker</string>
-    <string name="recent_activity_header">Recent Activity</string>
-    <string name="license_agreement_description">By continuing, you agree to be bound by the terms of the Kegtab license agreement at kegbot.org/android/license</string>
-    <string name="privacy_policy_agreement">By continuing, you agree to the terms of the Kegbot privacy policy at kegbot.org/about/privacy</string>
-    <string name="checkbox_agree_text">I Agree</string>
-    <string name="setup_license_title">Before You Continue…</string>
-    <string name="setup_license_description">You\'re free to use this app, but your use is governed by the License Agreement and Privacy Policy linked at right.</string>
-    <string name="setup_license_error">You must agree to continue.</string>
-    <string name="checkin_update_available_title">Kegbot update available</string>
-    <string name="checkin_update_required_title">Kegbot update required</string>
-    <string name="checkin_update_description">Tap to update Kegbot</string>
-    <string name="alert_network">Network Problem</string>
-    <string name="update_available">Update Available</string>
-    <string name="menu_bugreport">Bugreport</string>
-    <string name="bugreport_title">Report a Bug</string>
-    <string name="bugreport_message_idle">Tap to build a bugreport.</string>
-    <string name="bugreport_message_running">Collecting bugreport data…</string>
-    <string name="bugreport_message_ready">Bugreport collected. Please add detail below, and tap the button to launch your e-mail app.</string>
-    <string name="bugreport_message_submitting">Submitting bugreport…</string>
-    <string name="bugreport_message_submitted">Thanks! Bugreport submitted.</string>
-    <string name="bugreport_button_idle">Collect Bugreport</string>
-    <string name="bugreport_button_ready">Send Bugreport</string>
-    <string name="bugreport_detail_hint">Describe the problem and any steps leading to it.</string>
-    <string name="manager_pin_title">Please enter the Manager Pin to continue.</string>
-    <string name="manager_pin_error">You have entered an incorrect pin. Please try again.</string>
-    <string name="calibrate_help_text">Pour into a glass or measuring cup with a known volume. Then drag the slider (or tap the volume number) to set the actual amount poured.</string>
-    <string name="calibrate_dialog_no_ticks_title">Please pour first</string>
-    <string name="calibrate_dialog_no_ticks_message">Your meter has not registered any ticks yet. Please pour something before setting a custom volume.</string>
-    <string name="calibrate_dialog_custom_title">Enter actual volume</string>
-    <string name="calibrate_dialog_custom_message">Enter the actual volume of the pour below.</string>
-    <string name="new_keg_help_text">Enter keg details below.</string>
-    <string name="confirm_pin">Confirm PIN</string>
-    <string name="manager_pin_description">Secret PIN for manager access.</string>
-    <string name="example_url">kegbot.example.com</string>
-    <string name="license_agreement_title">License</string>
-    <string name="password_title">Password</string>
-    <string name="password_description">Your Kegbot account password.</string>
-    <string name="privacy_policy_title">Privacy Policy</string>
-    <string name="username_title">Username</string>
-    <string name="username_description">Your Kegbot account name.</string>
-    <string name="register_username_description">Pick a username. It\'s public and permanent!</string>
-    <string name="register_photo_description">Almost there! How about a mugshot? (It\'s optional.)</string>
-    <string name="register_email_description">We need your e-mail address!</string>
-    <string name="title_tap_list">Taps</string>
-    <string name="title_tap_detail">Tap Detail</string>
-    <string name="tap_detail_tap_empty">Idle Tap</string>
-    <string name="end_keg_button">End Current Keg</string>
-    <string name="tap_keg_button">Start New Keg</string>
-    <string name="controller_alert_title_new">New Hardware Detected</string>
-    <string name="new_controller_title">New Controller Connected</string>
-    <string name="new_controller_controller_name">Controller Name: </string>
-    <string name="new_controller_num_meters_title">How many meters does this controller support?</string>
-    <string name="new_controller_status_adding">Adding new controller…</string>
-    <string name="new_controller_status_added">Controller added successfully.</string>
-    <string name="new_controller_button_add">Add</string>
-    <string name="new_controller_button_cancel">Cancel</string>
-    <string name="bugreport_email">Follow-up email address (optional)</string>
-    <string name="setup_pair_title">Link This Device</string>
-    <string name="setup_pair_description">Please visit</string>
-    <string name="pairing_description_continued">and enter the code</string>
-    <string name="setup_button_next">Next</string>
-    <string name="setup_button_finish">Finish</string>
-    <string name="setup_pairing_code_placeholder">(generating code)</string>
-    <string name="alert_flow_detected_title">Activity detected</string>
-    <string name="title_activity_alert">AlertActivity</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
-    <string name="alert_flow_activity_description">Activity was detected on meter <b>%1$s</b>, but no tap is connected to it. Data will not be recorded until the meter is connected.\n\nTo connect this meter, visit "Manage Taps" from the home screen.</string>
-    <string name="alert_flow_activity_title">Activity detected</string>
-    <string name="edit_tap_disabled">Tap is disabled.</string>
-    <string name="alert_unbound_single_tap_description">Tap <b>%1$s</b> does not have a meter configured.</string>
-    <string name="alert_unbound_multiple_taps_description">Taps <b>%1$s</b> and <b>%2$s</b> do not
-        have a meter configured.</string>
-    <string name="alert_unbound_title">Configuration problem</string>
-    <string name="alert_unbound_action_name">Configure</string>
-    <string name="alert_button_dismiss">Dismiss</string>
-    <string name="alert_button_details">Details</string>
-    <string name="alert_button_ok">Ok</string>
-    <string name="pour_tap_idle">Tap is idle.</string>
-    <string name="pour_button_claim">Claim This Pour</string>
-    <string name="pour_shout_hint">Shout something! (optional)</string>
-    <string name="pour_button_done">Done Pouring!</string>
-    <string name="pour_status_complete">Pour complete!</string>
-    <string name="setup_kegbot_url_use_ssl">Use SSL</string>
-    <string name="kegbot_url_scheme_http">http://</string>
-    <string name="kegbot_url_scheme_https">https://</string>
-    <string name="calibrate_original_ticks_ml">Original ticks/mL:</string>
-    <string name="calibrate_calibrated_ticks_ml">Calibrated ticks/mL:</string>
-    <string name="calibrate_value_zero">0</string>
-    <string name="calibration_badge_actual_metric">Actual mL</string>
-    <string name="calibration_badge_actual_imperial">Actual Ounces</string>
-    <string name="drinker_select_title">Select Your Account</string>
-    <string name="drinker_select_other_options">Other Options</string>
-    <string name="drinker_select_button_new_account">New Account</string>
-    <string name="drinker_select_new_account_description">Register for and begin pouring with a new account.</string>
-    <string name="drinker_select_button_guest">Pour As Guest</string>
-    <string name="drinker_select_guest_description">Pour without linking to an account.</string>
-    <string name="settings_access_header">Access</string>
-    <string name="settings_camera_header">Camera</string>
-    <string name="register_agree_terms_text"><![CDATA[
+	<string name="authenticating_begin_title">Authenticating…</string>
+	<string name="authenticating_fail_title">Access Denied!</string>
+	<string name="authenticating_no_access_token">Your access token was not recognized.</string>
+	<string name="authenticating_connection_error">Could not contact the Kegbot server.</string>
+	<string name="hello">Give me a beer!</string>
+	<string name="app_name">StormKeg</string>
+	<string name="events_title">recent events</string>
+	<string name="taps_title">on tap</string>
+	<string name="tap_name"><xliff id="tap_name">%s</xliff>:
+		<xliff id="beverage_name">%s</xliff>
+	</string>
+	<string name="empty_tap">
+		<i>empty</i>
+	</string>
+	<string name="menu_settings">Settings</string>
+	<string name="menu_manage_taps">Manage Taps</string>
+	<string name="settings_name">Settings</string>
+	<string name="settings_general_header">General</string>
+	<string name="settings_kegerator_header">Kegerator</string>
+	<string name="settings_about_header">About</string>
+	<string name="pour_take_picture">Take Picture</string>
+	<string name="picture_countdown_3">3…</string>
+	<string name="picture_countdown_2">2…</string>
+	<string name="picture_countdown_1">1…</string>
+	<string name="setup_welcome_title">Welcome to Kegbot!</string>
+	<string name="setup_welcome_description">Looks like this is your first time running Kegbot. Cool!\n\nWe\'re going to
+		need a little information to get started. Tap the "Next" button below to continue.
+	</string>
+	<string name="setup_upgrade_title">Upgrade Kegbot</string>
+	<string name="setup_upgrade_description">Kegbot has been updated. Please verify your current settings before
+		continuing. Tap the "Next" button below to continue.
+	</string>
+	<string name="setup_kegbot_url_title">Kegbot URL</string>
+	<string name="setup_kegbot_url_description">We need to talk to your Kegbot system in order to load drinkers, tap
+		status, and other information. Please enter the URL of your Kegbot system.
+	</string>
+	<string name="setup_kegbot_url_url_name">Kegbot URL</string>
+	<string name="setup_kegbot_url_url_description">Enter main URL.</string>
+	<string name="setup_dialog_validate_title">Verifying…</string>
+	<string name="setup_dialog_validate_description">Verifying information, please wait…</string>
+	<string name="setup_log_in_title">Log In</string>
+	<string name="setup_log_in_description">In order to talk to your Kegbot server, the Kegtab application needs an API
+		key.\n\nPlease log in with a manager account in order to accquire an API key for this application. Your password
+		will not be saved.
+	</string>
+	<string name="setup_finished_title">Done!</string>
+	<string name="setup_finished_description">You\'re all set! Your Kegtab is now configured. Press Next to finish.
+		Please drink responsibly.
+	</string>
+	<string name="setup_manager_pin_title">Manager Pin (Optional)</string>
+	<string name="setup_manager_pin_description">Set a manager PIN to prevent unauthorized access to Kegtab application
+		settings.\n\nThis value is only used locally. If you forget the PIN value, you will need to reset Kegtab.
+	</string>
+	<string name="setup_select_backend_title">Configure Data Storage</string>
+	<string name="setup_select_backend_description">Where do you want Kegbot to store data, such as pour records, keg
+		status, and pictures?\n\nUsing internal storage is simpler to set up, but some features require a Kegbot Server.
+	</string>
+	<string name="setup_select_backend_server">Save to Kegbot Server</string>
+	<string name="setup_select_backend_server_description">Link to a Kegbot Server and use it for data storage.</string>
+	<string name="setup_select_backend_local">Use internal storage</string>
+	<string name="setup_select_backend_local_description">Save data locally, without using a web server.</string>
+	<string name="setup_select_backend_local_warning_title">Important Notice</string>
+	<string name="setup_select_backend_local_warning_description">Standalone mode is still an experimental
+		feature.\n\nBecause all data is stored locally and not on a remote server, there is an increased chance that you
+		could lose Kegbot data due to bugs, a lost manager pin, or device failure.
+	</string>
+	<string name="setup_select_backend_local_warning_ok">Continue</string>
+	<string name="camera_discard_picture">Discard</string>
+	<string name="camera_take_another">Re-Take</string>
+	<string name="kegbot_core_running">Kegbot Core is running</string>
+	<string name="beer_me_button">Beer Me!</string>
+	<string name="new_drinker_button">New Drinker</string>
+	<string name="recent_activity_header">Recent Activity</string>
+	<string name="license_agreement_description">By continuing, you agree to be bound by the terms of the Kegtab license
+		agreement at kegbot.org/android/license
+	</string>
+	<string name="privacy_policy_agreement">By continuing, you agree to the terms of the Kegbot privacy policy at
+		kegbot.org/about/privacy
+	</string>
+	<string name="checkbox_agree_text">I Agree</string>
+	<string name="setup_license_title">Before You Continue…</string>
+	<string name="setup_license_description">You\'re free to use this app, but your use is governed by the License
+		Agreement and Privacy Policy linked at right.
+	</string>
+	<string name="setup_license_error">You must agree to continue.</string>
+	<string name="checkin_update_available_title">Kegbot update available</string>
+	<string name="checkin_update_required_title">Kegbot update required</string>
+	<string name="checkin_update_description">Tap to update Kegbot</string>
+	<string name="alert_network">Network Problem</string>
+	<string name="update_available">Update Available</string>
+	<string name="menu_bugreport">Bugreport</string>
+	<string name="bugreport_title">Report a Bug</string>
+	<string name="bugreport_message_idle">Tap to build a bugreport.</string>
+	<string name="bugreport_message_running">Collecting bugreport data…</string>
+	<string name="bugreport_message_ready">Bugreport collected. Please add detail below, and tap the button to launch
+		your e-mail app.
+	</string>
+	<string name="bugreport_message_submitting">Submitting bugreport…</string>
+	<string name="bugreport_message_submitted">Thanks! Bugreport submitted.</string>
+	<string name="bugreport_button_idle">Collect Bugreport</string>
+	<string name="bugreport_button_ready">Send Bugreport</string>
+	<string name="bugreport_detail_hint">Describe the problem and any steps leading to it.</string>
+	<string name="manager_pin_title">Please enter the Manager Pin to continue.</string>
+	<string name="manager_pin_error">You have entered an incorrect pin. Please try again.</string>
+	<string name="calibrate_help_text">Pour into a glass or measuring cup with a known volume. Then drag the slider (or
+		tap the volume number) to set the actual amount poured.
+	</string>
+	<string name="calibrate_dialog_no_ticks_title">Please pour first</string>
+	<string name="calibrate_dialog_no_ticks_message">Your meter has not registered any ticks yet. Please pour something
+		before setting a custom volume.
+	</string>
+	<string name="calibrate_dialog_custom_title">Enter actual volume</string>
+	<string name="calibrate_dialog_custom_message">Enter the actual volume of the pour below.</string>
+	<string name="new_keg_help_text">Enter keg details below.</string>
+	<string name="confirm_pin">Confirm PIN</string>
+	<string name="manager_pin_description">Secret PIN for manager access.</string>
+	<string name="example_url">kegbot.example.com</string>
+	<string name="license_agreement_title">License</string>
+	<string name="password_title">Password</string>
+	<string name="password_description">Your Kegbot account password.</string>
+	<string name="privacy_policy_title">Privacy Policy</string>
+	<string name="username_title">Username</string>
+	<string name="username_description">Your Kegbot account name.</string>
+	<string name="register_username_description">Pick a username. It\'s public and permanent!</string>
+	<string name="register_photo_description">Almost there! How about a mugshot? (It\'s optional.)</string>
+	<string name="register_email_description">We need your e-mail address!</string>
+	<string name="title_tap_list">Taps</string>
+	<string name="title_tap_detail">Tap Detail</string>
+	<string name="tap_detail_tap_empty">Idle Tap</string>
+	<string name="end_keg_button">End Current Keg</string>
+	<string name="tap_keg_button">Start New Keg</string>
+	<string name="controller_alert_title_new">New Hardware Detected</string>
+	<string name="new_controller_title">New Controller Connected</string>
+	<string name="new_controller_controller_name">Controller Name:</string>
+	<string name="new_controller_num_meters_title">How many meters does this controller support?</string>
+	<string name="new_controller_status_adding">Adding new controller…</string>
+	<string name="new_controller_status_added">Controller added successfully.</string>
+	<string name="new_controller_button_add">Add</string>
+	<string name="new_controller_button_cancel">Cancel</string>
+	<string name="bugreport_email">Follow-up email address (optional)</string>
+	<string name="setup_pair_title">Link This Device</string>
+	<string name="setup_pair_description">Please visit</string>
+	<string name="pairing_description_continued">and enter the code</string>
+	<string name="setup_button_next">Next</string>
+	<string name="setup_button_finish">Finish</string>
+	<string name="setup_pairing_code_placeholder">(generating code)</string>
+	<string name="alert_flow_detected_title">Activity detected</string>
+	<string name="title_activity_alert">AlertActivity</string>
+	<string name="hello_world">Hello world!</string>
+	<string name="action_settings">Settings</string>
+	<string name="alert_flow_activity_description">Activity was detected on meter<b>%1$s</b>, but no tap is connected to
+		it. Data will not be recorded until the meter is connected.\n\nTo connect this meter, visit "Manage Taps" from
+		the home screen.
+	</string>
+	<string name="alert_flow_activity_title">Activity detected</string>
+	<string name="edit_tap_disabled">Tap is disabled.</string>
+	<string name="alert_unbound_single_tap_description">Tap
+		<b>%1$s</b>
+		does not have a meter configured.
+	</string>
+	<string name="alert_unbound_multiple_taps_description">Taps
+		<b>%1$s</b>
+		and
+		<b>%2$s</b>
+		do not
+		have a meter configured.
+	</string>
+	<string name="alert_unbound_title">Configuration problem</string>
+	<string name="alert_unbound_action_name">Configure</string>
+	<string name="alert_button_dismiss">Dismiss</string>
+	<string name="alert_button_details">Details</string>
+	<string name="alert_button_ok">Ok</string>
+	<string name="pour_tap_idle">Tap is idle.</string>
+	<string name="pour_button_claim">Claim This Pour</string>
+	<string name="pour_shout_hint">Shout something! (optional)</string>
+	<string name="pour_button_done">Done Pouring!</string>
+	<string name="pour_status_complete">Pour complete!</string>
+	<string name="setup_kegbot_url_use_ssl">Use SSL</string>
+	<string name="kegbot_url_scheme_http">http://</string>
+	<string name="kegbot_url_scheme_https">https://</string>
+	<string name="calibrate_original_ticks_ml">Original ticks/mL:</string>
+	<string name="calibrate_calibrated_ticks_ml">Calibrated ticks/mL:</string>
+	<string name="calibrate_value_zero">0</string>
+	<string name="calibration_badge_actual_metric">Actual mL</string>
+	<string name="calibration_badge_actual_imperial">Actual Ounces</string>
+	<string name="drinker_select_title">Select Your Account</string>
+	<string name="drinker_select_other_options">Other Options</string>
+	<string name="drinker_select_button_new_account">New Account</string>
+	<string name="drinker_select_new_account_description">Register for and begin pouring with a new account.</string>
+	<string name="drinker_select_button_guest">Pour As Guest</string>
+	<string name="drinker_select_guest_description">Pour without linking to an account.</string>
+	<string name="settings_access_header">Access</string>
+	<string name="settings_camera_header">Camera</string>
+	<string name="register_agree_terms_text"><![CDATA[
         I agree to the Kegbot <a
             href="https://kegbot.org/terms">Terms of Service</a> and <a
             href="https://kegbot.org/privacy">Privacy Policy</a>
         ]]></string>
-    <string name="drinker_select_button_cancel">Cancel</string>
-    <string name="register_error_email_invalid">Please enter a valid address.</string>
-    <string name="register_error_must_agree">You must agree to continue.</string>
+	<string name="drinker_select_button_cancel">Cancel</string>
+	<string name="register_error_email_invalid">Please enter a valid address.</string>
+	<string name="register_error_must_agree">You must agree to continue.</string>
 
 </resources>

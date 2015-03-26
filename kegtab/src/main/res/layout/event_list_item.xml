@@ -25,25 +25,25 @@
                 android:orientation="horizontal"
                 android:padding="5dip">
 
-    <ImageView
-        android:id="@+id/eventIcon"
-        android:layout_width="64dip"
-        android:layout_height="64dip"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="5dip"/>
+	<ImageView
+			android:id="@+id/eventIcon"
+			android:layout_width="64dip"
+			android:layout_height="64dip"
+			android:layout_alignParentTop="true"
+			android:layout_marginRight="5dip"/>
 
-    <TextView
-        android:id="@+id/eventText"
-        style="@style/normalText"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@id/eventIcon"/>
+	<TextView
+			android:id="@+id/eventText"
+			style="@style/normalText"
+			android:layout_alignParentTop="true"
+			android:layout_toRightOf="@id/eventIcon"/>
 
-    <TextView
-        android:id="@+id/eventDate"
-        style="@style/smallText"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/eventText"
-        android:layout_toRightOf="@id/eventIcon"
-        android:textColor="@color/muted"/>
+	<TextView
+			android:id="@+id/eventDate"
+			style="@style/smallText"
+			android:layout_alignParentBottom="true"
+			android:layout_below="@+id/eventText"
+			android:layout_toRightOf="@id/eventIcon"
+			android:textColor="@color/muted"/>
 
 </RelativeLayout>

@@ -19,7 +19,6 @@
 package org.kegbot.core;
 
 import junit.framework.TestCase;
-
 import org.kegbot.app.util.TimeSeries;
 import org.kegbot.core.FlowManager.Clock;
 import org.kegbot.proto.Models.Controller;
@@ -33,130 +32,126 @@ import org.kegbot.proto.Models.KegTap;
  */
 public class FlowTest extends TestCase {
 
-  private long mElapsedRealtime = 0;
+	private static final String FAKE_METER_NAME = "test.flow0";
+	private static final KegTap FAKE_TAP = KegTap.newBuilder()
+			.setId(1)
+			.setName("Test Tap")
+			.setMeter(FlowMeter.newBuilder()
+					.setId(1)
+					.setName(FAKE_METER_NAME)
+					.setPortName("flow0")
+					.setTicksPerMl(1 / 3.0f)
+					.setController(Controller.newBuilder()
+							.setId(1)
+							.setName("test")
+							.build())
+					.build())
+			.build();
+	private long mElapsedRealtime = 0;
+	private final Clock mFakeClock = new Clock() {
+		@Override
+		public long elapsedRealtime() {
+			return mElapsedRealtime;
+		}
+	};
 
-  private final Clock mFakeClock = new Clock() {
-    @Override
-    public long elapsedRealtime() {
-      return mElapsedRealtime;
-    }
-  };
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+		mElapsedRealtime = 0;
+	}
 
-  private static final String FAKE_METER_NAME = "test.flow0";
+	@Override
+	protected void tearDown() throws Exception {
+		super.tearDown();
+	}
 
-  private static final KegTap FAKE_TAP = KegTap.newBuilder()
-      .setId(1)
-      .setName("Test Tap")
-      .setMeter(FlowMeter.newBuilder()
-          .setId(1)
-          .setName(FAKE_METER_NAME)
-          .setPortName("flow0")
-          .setTicksPerMl(1 / 3.0f)
-          .setController(Controller.newBuilder()
-              .setId(1)
-              .setName("test")
-              .build())
-          .build())
-      .build();
+	public void testTickKeeping() {
+		Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
 
+		assertEquals(0, flow.getTicks());
+		assertEquals(0, flow.getVolumeMl(), 0.000001);
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    mElapsedRealtime = 0;
-  }
+		flow.addTicks(10);
+		assertEquals(10, flow.getTicks());
+		assertEquals(10 * 3, flow.getVolumeMl(), 0.000001);
 
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
+		assertFalse(flow.isFinished());
+		flow.setFinished();
+		assertTrue(flow.isFinished());
 
-  public void testTickKeeping() {
-    Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
+		try {
+			flow.addTicks(10);
+			fail("Should have thrown IllegalStateException");
+		} catch (IllegalStateException e) {
+			// Expected.
+		}
 
-    assertEquals(0, flow.getTicks());
-    assertEquals(0, flow.getVolumeMl(), 0.000001);
+		try {
+			flow.setFinished();
+			fail("Should have thrown IllegalStateException");
+		} catch (IllegalStateException e) {
+			// Expected.
+		}
 
-    flow.addTicks(10);
-    assertEquals(10, flow.getTicks());
-    assertEquals(10 * 3, flow.getVolumeMl(), 0.000001);
+	}
 
-    assertFalse(flow.isFinished());
-    flow.setFinished();
-    assertTrue(flow.isFinished());
+	public void testTimeKeeping() {
+		Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
 
-    try {
-      flow.addTicks(10);
-      fail("Should have thrown IllegalStateException");
-    } catch (IllegalStateException e) {
-      // Expected.
-    }
+		assertEquals(0, flow.getDurationMs());
+		assertFalse(flow.isIdle());
+		mElapsedRealtime = 10;
+		assertEquals(10, flow.getDurationMs());
+		assertFalse(flow.isIdle());
 
-    try {
-      flow.setFinished();
-      fail("Should have thrown IllegalStateException");
-    } catch (IllegalStateException e) {
-      // Expected.
-    }
+		mElapsedRealtime = 100;
+		assertEquals(100, flow.getDurationMs());
+		assertTrue(flow.isIdle());
 
-  }
+		assertFalse(flow.isFinished());
+		flow.setFinished();
+		assertTrue(flow.isFinished());
 
-  public void testTimeKeeping() {
-    Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
+		assertEquals(0, flow.getVolumeMl(), 0.000001);
+		assertEquals(TimeSeries.fromString("0:0 100:0"), flow.getTickTimeSeries());
+	}
 
-    assertEquals(0, flow.getDurationMs());
-    assertFalse(flow.isIdle());
-    mElapsedRealtime = 10;
-    assertEquals(10, flow.getDurationMs());
-    assertFalse(flow.isIdle());
+	public void testShout() {
+		Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
 
-    mElapsedRealtime = 100;
-    assertEquals(100, flow.getDurationMs());
-    assertTrue(flow.isIdle());
+		assertEquals("", flow.getShout());
+		flow.setShout("Foo");
+		assertEquals("Foo", flow.getShout());
+		flow.setShout(null);
+		assertEquals("", flow.getShout());
 
-    assertFalse(flow.isFinished());
-    flow.setFinished();
-    assertTrue(flow.isFinished());
+		assertFalse(flow.isFinished());
+		flow.setFinished();
+		assertTrue(flow.isFinished());
 
-    assertEquals(0, flow.getVolumeMl(), 0.000001);
-    assertEquals(TimeSeries.fromString("0:0 100:0"), flow.getTickTimeSeries());
-  }
+		// Post-finished shouts are OK, for now.
+		flow.setShout("foo");
+		assertEquals("foo", flow.getShout());
+	}
 
-  public void testShout() {
-    Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
+	public void testTimeSeries() {
+		mElapsedRealtime = 1000;
+		Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
+		assertEquals(TimeSeries.fromString("0:0"), flow.getTickTimeSeries());
 
-    assertEquals("", flow.getShout());
-    flow.setShout("Foo");
-    assertEquals("Foo", flow.getShout());
-    flow.setShout(null);
-    assertEquals("", flow.getShout());
+		flow.addTicks(1);
+		assertEquals(TimeSeries.fromString("0:1"), flow.getTickTimeSeries());
 
-    assertFalse(flow.isFinished());
-    flow.setFinished();
-    assertTrue(flow.isFinished());
+		mElapsedRealtime = 1100;
+		flow.addTicks(2);
+		assertEquals(TimeSeries.fromString("0:1 100:2"), flow.getTickTimeSeries());
 
-    // Post-finished shouts are OK, for now.
-    flow.setShout("foo");
-    assertEquals("foo", flow.getShout());
-  }
+		mElapsedRealtime = 1200;
+		flow.addTicks(3);
+		assertEquals(TimeSeries.fromString("0:1 100:2 200:3"), flow.getTickTimeSeries());
 
-  public void testTimeSeries() {
-    mElapsedRealtime = 1000;
-    Flow flow = new Flow(mFakeClock, FAKE_METER_NAME, 1, FAKE_TAP, 100);
-    assertEquals(TimeSeries.fromString("0:0"), flow.getTickTimeSeries());
-
-    flow.addTicks(1);
-    assertEquals(TimeSeries.fromString("0:1"), flow.getTickTimeSeries());
-
-    mElapsedRealtime = 1100;
-    flow.addTicks(2);
-    assertEquals(TimeSeries.fromString("0:1 100:2"), flow.getTickTimeSeries());
-
-    mElapsedRealtime = 1200;
-    flow.addTicks(3);
-    assertEquals(TimeSeries.fromString("0:1 100:2 200:3"), flow.getTickTimeSeries());
-
-    assertEquals(flow.getTicks(), 6);
-  }
+		assertEquals(flow.getTicks(), 6);
+	}
 
 }

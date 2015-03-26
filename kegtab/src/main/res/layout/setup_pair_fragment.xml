@@ -23,61 +23,61 @@
               android:gravity="center"
               android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/pairTitleText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dip"
-        android:text="Link This Device"
-        android:textSize="32dip"
-        android:textStyle="bold">
+	<TextView
+			android:id="@+id/pairTitleText"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="24dip"
+			android:text="Link This Device"
+			android:textSize="32dip"
+			android:textStyle="bold">
 
-    </TextView>
+	</TextView>
 
-    <TextView
-        android:id="@+id/pairingPleaseVisit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="@string/setup_pair_description"
-        android:textSize="24dip">
-    </TextView>
+	<TextView
+			android:id="@+id/pairingPleaseVisit"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="16dp"
+			android:text="@string/setup_pair_description"
+			android:textSize="24dip">
+	</TextView>
 
-    <TextView
-        android:id="@+id/pairingUrl"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:textSize="24dip">
-    </TextView>
+	<TextView
+			android:id="@+id/pairingUrl"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="16dp"
+			android:textSize="24dip">
+	</TextView>
 
-    <TextView
-        android:id="@+id/pairingAndEnter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="@string/pairing_description_continued"
-        android:textSize="24dip">
-    </TextView>
+	<TextView
+			android:id="@+id/pairingAndEnter"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="16dp"
+			android:text="@string/pairing_description_continued"
+			android:textSize="24dip">
+	</TextView>
 
-    <TextView
-        android:id="@+id/pairingCode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/setup_pairing_code_placeholder"
-        android:textIsSelectable="true"
-        style="@style/jumboText">
-    </TextView>
+	<TextView
+			android:id="@+id/pairingCode"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:text="@string/setup_pairing_code_placeholder"
+			android:textIsSelectable="true"
+			style="@style/jumboText">
+	</TextView>
 
-    <TextView
-        android:id="@+id/pairingComplete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="Pairing complete! Tap Next to continue."
-        android:visibility="gone"
-        android:textSize="24dip">
-    </TextView>
+	<TextView
+			android:id="@+id/pairingComplete"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="16dp"
+			android:text="Pairing complete! Tap Next to continue."
+			android:visibility="gone"
+			android:textSize="24dip">
+	</TextView>
 
 </LinearLayout>

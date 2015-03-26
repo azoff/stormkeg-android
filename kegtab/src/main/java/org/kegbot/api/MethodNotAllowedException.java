@@ -22,22 +22,22 @@ import org.codehaus.jackson.JsonNode;
 
 public class MethodNotAllowedException extends KegbotApiException {
 
-  public MethodNotAllowedException() {
-  }
+	public MethodNotAllowedException() {
+	}
 
-  public MethodNotAllowedException(JsonNode errors) {
-    super(errors);
-  }
+	public MethodNotAllowedException(JsonNode errors) {
+		super(errors);
+	}
 
-  public MethodNotAllowedException(String detailMessage) {
-    super(detailMessage);
-  }
+	public MethodNotAllowedException(String detailMessage) {
+		super(detailMessage);
+	}
 
-  public MethodNotAllowedException(Throwable throwable) {
-    super(throwable);
-  }
+	public MethodNotAllowedException(Throwable throwable) {
+		super(throwable);
+	}
 
-  public MethodNotAllowedException(String detailMessage, Throwable throwable) {
-    super(detailMessage, throwable);
-  }
+	public MethodNotAllowedException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
 }

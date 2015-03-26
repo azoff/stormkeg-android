@@ -29,14 +29,14 @@ import java.util.List;
  */
 public class TapsChangedEvent implements Event {
 
-  private final List<KegTap> mTaps;
+	private final List<KegTap> mTaps;
 
-  public TapsChangedEvent(List<KegTap> taps) {
-    mTaps = taps;
-  }
+	public TapsChangedEvent(List<KegTap> taps) {
+		mTaps = taps;
+	}
 
-  public List<KegTap> getTaps() {
-    return mTaps;
-  }
+	public List<KegTap> getTaps() {
+		return mTaps;
+	}
 
 }

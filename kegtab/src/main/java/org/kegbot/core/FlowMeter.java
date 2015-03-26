@@ -24,25 +24,25 @@ package org.kegbot.core;
  */
 public class FlowMeter {
 
-  private final String mMeterName;
+	private final String mMeterName;
 
-  private long mTicks;
+	private long mTicks;
 
-  public FlowMeter(final String meterName) {
-    mMeterName = meterName;
-    mTicks = 0;
-  }
+	public FlowMeter(final String meterName) {
+		mMeterName = meterName;
+		mTicks = 0;
+	}
 
-  public long getTicks() {
-    return mTicks;
-  }
+	public long getTicks() {
+		return mTicks;
+	}
 
-  public void setTicks(long ticks) {
-    mTicks = ticks;
-  }
+	public void setTicks(long ticks) {
+		mTicks = ticks;
+	}
 
-  public String getMeterName() {
-    return mMeterName;
-  }
+	public String getMeterName() {
+		return mMeterName;
+	}
 
 }

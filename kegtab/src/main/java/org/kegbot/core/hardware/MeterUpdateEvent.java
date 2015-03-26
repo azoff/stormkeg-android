@@ -24,14 +24,14 @@ import org.kegbot.core.FlowMeter;
 
 public class MeterUpdateEvent implements Event {
 
-  private final FlowMeter mMeter;
+	private final FlowMeter mMeter;
 
-  public MeterUpdateEvent(FlowMeter meter) {
-    mMeter = meter;
-  }
+	public MeterUpdateEvent(FlowMeter meter) {
+		mMeter = meter;
+	}
 
-  public FlowMeter getMeter() {
-    return mMeter;
-  }
+	public FlowMeter getMeter() {
+		return mMeter;
+	}
 
 }

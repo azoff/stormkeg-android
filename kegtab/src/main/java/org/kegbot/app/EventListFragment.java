@@ -31,20 +31,14 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.LayoutAnimationController;
-import android.view.animation.TranslateAnimation;
+import android.view.animation.*;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.squareup.otto.Subscribe;
-
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.app.event.SystemEventListUpdateEvent;
 import org.kegbot.app.util.ImageDownloader;
@@ -66,229 +60,231 @@ import java.util.concurrent.TimeUnit;
  */
 public class EventListFragment extends ListFragment {
 
-  private static final String TAG = EventListFragment.class.getSimpleName();
+	private static final String TAG = EventListFragment.class.getSimpleName();
 
-  /** Maximum number of events to show/retain. */
-  private static final int MAX_EVENTS = 20;
-  private static final long REFRESH_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1);
+	/**
+	 * Maximum number of events to show/retain.
+	 */
+	private static final int MAX_EVENTS = 20;
+	private static final long REFRESH_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1);
+	/**
+	 * Refreshes event timestamps by invalidating all ListView children periodically.
+	 */
+	private final Runnable mTimeUpdateRunnable = new Runnable() {
+		@Override
+		public void run() {
+			ListView v = getListView();
+			if (v != null) {
+				v.invalidateViews();
+			}
+			mHandler.postDelayed(this, REFRESH_INTERVAL_MILLIS);
+		}
+	};
+	private final Handler mHandler = new Handler(Looper.getMainLooper());
+	private final List<SystemEvent> mCachedEvents = Lists.newArrayList();
+	private View mView;
+	private ArrayAdapter<SystemEvent> mAdapter;
+	private KegbotCore mCore;
+	private ImageDownloader mImageDownloader;
 
-  private View mView;
-  private ArrayAdapter<SystemEvent> mAdapter;
-  private KegbotCore mCore;
-  private ImageDownloader mImageDownloader;
-  private final Handler mHandler = new Handler(Looper.getMainLooper());
-  private final List<SystemEvent> mCachedEvents = Lists.newArrayList();
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		mImageDownloader = KegbotCore.getInstance(activity).getImageDownloader();
+	}
 
-  /** Refreshes event timestamps by invalidating all ListView children periodically. */
-  private final Runnable mTimeUpdateRunnable = new Runnable() {
-    @Override
-    public void run() {
-      ListView v = getListView();
-      if (v != null) {
-        v.invalidateViews();
-      }
-      mHandler.postDelayed(this, REFRESH_INTERVAL_MILLIS);
-    }
-  };
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
 
-  /**
-   *
-   */
-  private class EventListArrayAdapter extends ArrayAdapter<SystemEvent> {
+		mAdapter = new EventListArrayAdapter(getActivity(), R.layout.event_list_item, R.id.eventText);
 
-    private EventListArrayAdapter(Context context, int resource, int textViewResourceId) {
-      super(context, resource, textViewResourceId);
-    }
+		AnimationSet set = new AnimationSet(true);
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      final View view = super.getView(position, convertView, parent);
-      final SystemEvent eventDetail = getItem(position);
-      try {
-        formatEvent(eventDetail, view);
-      } catch (Throwable e) {
-        Log.wtf(TAG, "UNCAUGHT EXCEPTION", e);
-      }
-      return view;
-    }
+		Animation animation = new AlphaAnimation(0.0f, 1.0f);
+		animation.setDuration(300);
+		set.addAnimation(animation);
+		animation = new TranslateAnimation(
+				Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+				Animation.RELATIVE_TO_SELF, -1.0f, Animation.RELATIVE_TO_SELF, 0.0f
+		);
+		animation.setDuration(300);
+		set.addAnimation(animation);
 
-    private void formatEvent(SystemEvent event, View view) {
-      // Common: image.
-      final ImageView icon = (ImageView) view.findViewById(R.id.eventIcon);
-      icon.setVisibility(View.GONE);
-      if (event.hasImage()) {
-        final String imageUrl = event.getImage().getThumbnailUrl();
-        if (!Strings.isNullOrEmpty(imageUrl)) {
-          icon.setVisibility(View.VISIBLE);
-          icon.setImageBitmap(null);
+		LayoutAnimationController controller = new LayoutAnimationController(set, 0.3f);
+		getListView().setLayoutAnimation(controller);
+		setListAdapter(mAdapter);
+	}
 
-          // Default to unknown drinker, may be immediately replaced by downloader.
-          icon.setBackgroundResource(R.drawable.unknown_drinker);
-          mImageDownloader.download(imageUrl, icon);
-        }
-      }
+	@Override
+	public void onResume() {
+		super.onResume();
+		mHandler.postDelayed(mTimeUpdateRunnable, REFRESH_INTERVAL_MILLIS);
+		mCore = KegbotCore.getInstance(getActivity());
+		mCore.getBus().register(this);
+	}
 
-      final String eventTextContent;
-      final String userNameString = getUsernameForEvent(event);
-      if (userNameString != null) {
-        eventTextContent = "<b>" + userNameString + "</b> " + getTitle(event);
-      } else {
-        eventTextContent = getTitle(event);
-      }
+	@Override
+	public void onPause() {
+		mCore.getBus().unregister(this);
+		mHandler.removeCallbacks(mTimeUpdateRunnable);
+		super.onPause();
+	}
 
-      final TextView eventText = (TextView) view.findViewById(R.id.eventText);
-      eventText.setText(Html.fromHtml(eventTextContent));
+	@Subscribe
+	public void onEventListUpdate(SystemEventListUpdateEvent event) {
+		List<SystemEvent> newEvents = event.getEvents();
+		if (!newEvents.isEmpty()) {
+			Log.d(TAG, "Events updated: " + newEvents.size());
+			for (SystemEvent e : newEvents) {
+				if (!mCachedEvents.contains(e)) {
+					mCachedEvents.add(e);
+				}
+			}
 
-      // Date and time.
-      TextView dateView = (TextView) view.findViewById(R.id.eventDate);
-      String isoTime = event.getTime();
-      try {
-        long time = org.kegbot.app.util.DateUtils.dateFromIso8601String(isoTime);
+			Collections.sort(mCachedEvents, SyncManager.EVENTS_DESCENDING);
+			while (mCachedEvents.size() > MAX_EVENTS) {
+				mCachedEvents.remove(mCachedEvents.size() - 1);
+			}
+			mAdapter.clear();
+			mAdapter.addAll(mCachedEvents);
+		}
 
-        CharSequence relTime = DateUtils.getRelativeDateTimeString(getContext(), time, 60 * 1000,
-            7 * 24 * 60 * 60 * 100, 0);
-        dateView.setText(relTime);
-        dateView.setVisibility(View.VISIBLE);
-      } catch (IllegalArgumentException e) {
-        dateView.setVisibility(View.GONE);
-      }
+		if (mView != null) {
+			if (mCachedEvents.isEmpty()) {
+				mView.setVisibility(View.GONE);
+			} else {
+				mView.setVisibility(View.VISIBLE);
+			}
+		}
+	}
 
-    }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mView = inflater.inflate(R.layout.event_list_fragment_layout, container, false);
+		return mView;
+	}
 
-    private String getTitle(SystemEvent eventDetail) {
-      final String kind = eventDetail.getKind();
-      final Drink drink = eventDetail.getDrink();
-      String result;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+	}
 
-      if ("keg_ended".equals(kind)) {
-        result = "ended";
-      } else if ("keg_tapped".equals(kind)) {
-        result = "tapped";
-      } else if ("drink_poured".equals(kind)) {
-        final AppConfiguration appConfig = KegbotCore.getInstance(getContext()).getConfiguration();
-        Pair<String, String> qty = Units.localize(appConfig, drink.getVolumeMl());
-        result = String.format("poured %s %s", qty.first, qty.second);
-      } else if ("session_joined".equals(kind)) {
-        result = "started drinking";
-      } else if ("session_started".equals(kind)) {
-        result = "started a new session";
-      } else {
-        result = "Unknown event";
-      }
-      return result;
-    }
+	/**
+	 *
+	 */
+	private class EventListArrayAdapter extends ArrayAdapter<SystemEvent> {
 
-    private String getUsernameForEvent(SystemEvent eventDetail) {
-      final String userName;
-      if (!eventDetail.hasUser()) {
-        userName = "a guest";
-      } else {
-        final Models.User user = eventDetail.getUser();
-        if (user.hasDisplayName()) {
-          userName = user.getDisplayName();
-        } else {
-          userName = user.getUsername();
-        }
-      }
+		private EventListArrayAdapter(Context context, int resource, int textViewResourceId) {
+			super(context, resource, textViewResourceId);
+		}
 
-      final String kind = eventDetail.getKind();
-      if ("drink_poured".equals(kind)) {
-        return userName;
-      } else if ("session_joined".equals(kind)) {
-        return userName;
-      } else if ("session_started".equals(kind)) {
-        return userName;
-      } else if ("keg_ended".equals(kind) || "keg_tapped".equals(kind)) {
-        if (eventDetail.hasKeg()) {
-          return "Keg " + eventDetail.getKeg().getId();
-        }
-      }
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			final View view = super.getView(position, convertView, parent);
+			final SystemEvent eventDetail = getItem(position);
+			try {
+				formatEvent(eventDetail, view);
+			} catch (Throwable e) {
+				Log.wtf(TAG, "UNCAUGHT EXCEPTION", e);
+			}
+			return view;
+		}
 
-      return null;
-    }
-  }
+		private void formatEvent(SystemEvent event, View view) {
+			// Common: image.
+			final ImageView icon = (ImageView) view.findViewById(R.id.eventIcon);
+			icon.setVisibility(View.GONE);
+			if (event.hasImage()) {
+				final String imageUrl = event.getImage().getThumbnailUrl();
+				if (!Strings.isNullOrEmpty(imageUrl)) {
+					icon.setVisibility(View.VISIBLE);
+					icon.setImageBitmap(null);
 
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    mImageDownloader = KegbotCore.getInstance(activity).getImageDownloader();
-  }
+					// Default to unknown drinker, may be immediately replaced by downloader.
+					icon.setBackgroundResource(R.drawable.unknown_drinker);
+					mImageDownloader.download(imageUrl, icon);
+				}
+			}
 
-  @Override
-  public void onActivityCreated(Bundle savedInstanceState) {
-    super.onActivityCreated(savedInstanceState);
+			final String eventTextContent;
+			final String userNameString = getUsernameForEvent(event);
+			if (userNameString != null) {
+				eventTextContent = "<b>" + userNameString + "</b> " + getTitle(event);
+			} else {
+				eventTextContent = getTitle(event);
+			}
 
-    mAdapter = new EventListArrayAdapter(getActivity(), R.layout.event_list_item, R.id.eventText);
+			final TextView eventText = (TextView) view.findViewById(R.id.eventText);
+			eventText.setText(Html.fromHtml(eventTextContent));
 
-    AnimationSet set = new AnimationSet(true);
+			// Date and time.
+			TextView dateView = (TextView) view.findViewById(R.id.eventDate);
+			String isoTime = event.getTime();
+			try {
+				long time = org.kegbot.app.util.DateUtils.dateFromIso8601String(isoTime);
 
-    Animation animation = new AlphaAnimation(0.0f, 1.0f);
-    animation.setDuration(300);
-    set.addAnimation(animation);
-    animation = new TranslateAnimation(
-        Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
-        Animation.RELATIVE_TO_SELF, -1.0f, Animation.RELATIVE_TO_SELF, 0.0f
-    );
-    animation.setDuration(300);
-    set.addAnimation(animation);
+				CharSequence relTime = DateUtils.getRelativeDateTimeString(getContext(), time, 60 * 1000,
+						7 * 24 * 60 * 60 * 100, 0);
+				dateView.setText(relTime);
+				dateView.setVisibility(View.VISIBLE);
+			} catch (IllegalArgumentException e) {
+				dateView.setVisibility(View.GONE);
+			}
 
-    LayoutAnimationController controller = new LayoutAnimationController(set, 0.3f);
-    getListView().setLayoutAnimation(controller);
-    setListAdapter(mAdapter);
-  }
+		}
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    mHandler.postDelayed(mTimeUpdateRunnable, REFRESH_INTERVAL_MILLIS);
-    mCore = KegbotCore.getInstance(getActivity());
-    mCore.getBus().register(this);
-  }
+		private String getTitle(SystemEvent eventDetail) {
+			final String kind = eventDetail.getKind();
+			final Drink drink = eventDetail.getDrink();
+			String result;
 
-  @Override
-  public void onPause() {
-    mCore.getBus().unregister(this);
-    mHandler.removeCallbacks(mTimeUpdateRunnable);
-    super.onPause();
-  }
+			if ("keg_ended".equals(kind)) {
+				result = "ended";
+			} else if ("keg_tapped".equals(kind)) {
+				result = "tapped";
+			} else if ("drink_poured".equals(kind)) {
+				final AppConfiguration appConfig = KegbotCore.getInstance(getContext()).getConfiguration();
+				Pair<String, String> qty = Units.localize(appConfig, drink.getVolumeMl());
+				result = String.format("poured %s %s", qty.first, qty.second);
+			} else if ("session_joined".equals(kind)) {
+				result = "started drinking";
+			} else if ("session_started".equals(kind)) {
+				result = "started a new session";
+			} else {
+				result = "Unknown event";
+			}
+			return result;
+		}
 
-  @Subscribe
-  public void onEventListUpdate(SystemEventListUpdateEvent event) {
-    List<SystemEvent> newEvents = event.getEvents();
-    if (!newEvents.isEmpty()) {
-      Log.d(TAG, "Events updated: " + newEvents.size());
-      for (SystemEvent e : newEvents) {
-        if (!mCachedEvents.contains(e)) {
-          mCachedEvents.add(e);
-        }
-      }
+		private String getUsernameForEvent(SystemEvent eventDetail) {
+			final String userName;
+			if (!eventDetail.hasUser()) {
+				userName = "a guest";
+			} else {
+				final Models.User user = eventDetail.getUser();
+				if (user.hasDisplayName()) {
+					userName = user.getDisplayName();
+				} else {
+					userName = user.getUsername();
+				}
+			}
 
-      Collections.sort(mCachedEvents, SyncManager.EVENTS_DESCENDING);
-      while (mCachedEvents.size() > MAX_EVENTS) {
-        mCachedEvents.remove(mCachedEvents.size() - 1);
-      }
-      mAdapter.clear();
-      mAdapter.addAll(mCachedEvents);
-    }
+			final String kind = eventDetail.getKind();
+			if ("drink_poured".equals(kind)) {
+				return userName;
+			} else if ("session_joined".equals(kind)) {
+				return userName;
+			} else if ("session_started".equals(kind)) {
+				return userName;
+			} else if ("keg_ended".equals(kind) || "keg_tapped".equals(kind)) {
+				if (eventDetail.hasKeg()) {
+					return "Keg " + eventDetail.getKeg().getId();
+				}
+			}
 
-    if (mView != null) {
-      if (mCachedEvents.isEmpty()) {
-        mView.setVisibility(View.GONE);
-      } else {
-        mView.setVisibility(View.VISIBLE);
-      }
-    }
-  }
-
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    mView = inflater.inflate(R.layout.event_list_fragment_layout, container, false);
-    return mView;
-  }
-
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-  }
+			return null;
+		}
+	}
 
 }

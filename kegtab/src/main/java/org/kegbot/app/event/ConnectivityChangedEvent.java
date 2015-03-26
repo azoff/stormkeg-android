@@ -26,20 +26,20 @@ package org.kegbot.app.event;
  */
 public class ConnectivityChangedEvent implements Event {
 
-  private final boolean mIsConnected;
-  private final String mMessage;
+	private final boolean mIsConnected;
+	private final String mMessage;
 
-  public ConnectivityChangedEvent(boolean connected, String message) {
-    mIsConnected = connected;
-    mMessage = message;
-  }
+	public ConnectivityChangedEvent(boolean connected, String message) {
+		mIsConnected = connected;
+		mMessage = message;
+	}
 
-  public boolean isConnected() {
-    return mIsConnected;
-  }
+	public boolean isConnected() {
+		return mIsConnected;
+	}
 
-  public String getMessage() {
-    return mMessage;
-  }
+	public String getMessage() {
+		return mMessage;
+	}
 
 }

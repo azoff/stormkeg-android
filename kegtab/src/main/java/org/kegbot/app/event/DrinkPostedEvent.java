@@ -27,14 +27,14 @@ import org.kegbot.proto.Models.Drink;
  */
 public class DrinkPostedEvent implements Event {
 
-  private final Drink mDrink;
+	private final Drink mDrink;
 
-  public DrinkPostedEvent(Drink drink) {
-    mDrink = drink;
-  }
+	public DrinkPostedEvent(Drink drink) {
+		mDrink = drink;
+	}
 
-  public Drink getDrink() {
-    return mDrink;
-  }
+	public Drink getDrink() {
+		return mDrink;
+	}
 
 }

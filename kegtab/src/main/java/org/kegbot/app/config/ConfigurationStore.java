@@ -27,24 +27,24 @@ import java.util.Set;
  */
 public interface ConfigurationStore {
 
-  public void putString(String key, String value);
+	public void putString(String key, String value);
 
-  public void putStringSet(String key, Set<String> values);
+	public void putStringSet(String key, Set<String> values);
 
-  public void putInteger(String key, int value);
+	public void putInteger(String key, int value);
 
-  public void putLong(String key, long value);
+	public void putLong(String key, long value);
 
-  public void putBoolean(String key, boolean value);
+	public void putBoolean(String key, boolean value);
 
-  public String getString(String key, String defaultValue);
+	public String getString(String key, String defaultValue);
 
-  public Set<String> getStringSet(String key, Set<String> defaultValues);
+	public Set<String> getStringSet(String key, Set<String> defaultValues);
 
-  public int getInteger(String key, int defaultValue);
+	public int getInteger(String key, int defaultValue);
 
-  public long getLong(String key, long defaultValue);
+	public long getLong(String key, long defaultValue);
 
-  public boolean getBoolean(String key, boolean defaultValue);
+	public boolean getBoolean(String key, boolean defaultValue);
 
 }

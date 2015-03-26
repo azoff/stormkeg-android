@@ -20,7 +20,6 @@ package org.kegbot.app.event;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import org.kegbot.proto.Models.SoundEvent;
 
 import java.util.List;
@@ -32,14 +31,14 @@ import java.util.List;
  */
 public class SoundEventListUpdateEvent implements Event {
 
-  private final List<SoundEvent> mEvents = Lists.newArrayList();
+	private final List<SoundEvent> mEvents = Lists.newArrayList();
 
-  public SoundEventListUpdateEvent(List<SoundEvent> events) {
-    mEvents.addAll(events);
-  }
+	public SoundEventListUpdateEvent(List<SoundEvent> events) {
+		mEvents.addAll(events);
+	}
 
-  public List<SoundEvent> getEvents() {
-    return ImmutableList.copyOf(mEvents);
-  }
+	public List<SoundEvent> getEvents() {
+		return ImmutableList.copyOf(mEvents);
+	}
 
 }

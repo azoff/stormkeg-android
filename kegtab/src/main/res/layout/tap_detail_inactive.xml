@@ -22,22 +22,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tapInactiveTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Tap Offline"
-        android:textSize="48dip"
-        android:textStyle="bold"/>
+	<TextView
+			android:id="@+id/tapInactiveTitle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true"
+			android:text="Tap Offline"
+			android:textSize="48dip"
+			android:textStyle="bold"/>
 
-    <Button
-        android:id="@+id/tapKegButton"
-        style="@style/largeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/tapInactiveTitle"
-        android:layout_centerInParent="true"
-        android:text="Start a Keg"/>
+	<Button
+			android:id="@+id/tapKegButton"
+			style="@style/largeButton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/tapInactiveTitle"
+			android:layout_centerInParent="true"
+			android:text="Start a Keg"/>
 
 </RelativeLayout>

@@ -27,67 +27,67 @@ import static org.kegbot.app.config.AppConfiguration.TRUE;
  * @author mike wakerly (opensource@hoho.com)
  */
 enum ConfigKey {
-  SETUP_VERSION("0"),
-  LOCAL_BACKEND(FALSE),
+	SETUP_VERSION("0"),
+	LOCAL_BACKEND(FALSE),
 
-  KEGBOT_URL(""),
-  API_KEY(""),
-  USERNAME(""),
-  PIN(""),
+	KEGBOT_URL(""),
+	API_KEY(""),
+	USERNAME(""),
+	PIN(""),
 
-  REGISTRATION_ID(""),
+	REGISTRATION_ID(""),
 
-  ALLOW_REGISTRATION(TRUE),
-  ALLOW_MANUAL_LOGIN(TRUE),
-  CACHE_CREDENTIALS(TRUE),
-  RUN_CORE(TRUE),
-  ENABLE_AUTOMATIC_FLOW_START(TRUE),
+	ALLOW_REGISTRATION(TRUE),
+	ALLOW_MANUAL_LOGIN(TRUE),
+	CACHE_CREDENTIALS(TRUE),
+	RUN_CORE(TRUE),
+	ENABLE_AUTOMATIC_FLOW_START(TRUE),
 
-  USE_CAMERA(TRUE),
-  AUTO_TAKE_PHOTOS(TRUE),
-  TAKE_PHOTOS_DURING_REGISTRATION(FALSE),
-  ENABLE_CAMERA_SOUNDS(TRUE),
+	USE_CAMERA(TRUE),
+	AUTO_TAKE_PHOTOS(TRUE),
+	TAKE_PHOTOS_DURING_REGISTRATION(FALSE),
+	ENABLE_CAMERA_SOUNDS(TRUE),
 
-  FLOW_MINIMUM_VOLUME_ML("10"),
-  FLOW_IDLE_TIMEOUT_SECONDS("90"),
-  FLOW_IDLE_WARNING_SECONDS("60"),
-  ATTRACT_MODE(TRUE),
+	FLOW_MINIMUM_VOLUME_ML("10"),
+	FLOW_IDLE_TIMEOUT_SECONDS("90"),
+	FLOW_IDLE_WARNING_SECONDS("60"),
+	ATTRACT_MODE(TRUE),
 
-  GCM_REGISTRATION_ID(""),
-  GCM_REGISTRATION_APP_VERSION("0"),
+	GCM_REGISTRATION_ID(""),
+	GCM_REGISTRATION_APP_VERSION("0"),
 
-  LAST_CHECKIN_ATTEMPT_MILLIS(String.valueOf(Long.MIN_VALUE)),
-  LAST_CHECKIN_SUCCESS_MILLIS(String.valueOf(Long.MIN_VALUE)),
-  LAST_CHECKIN_STATUS(""),
-  UPDATE_REQUIRED(FALSE),
-  UPDATE_AVAILABLE(FALSE),
+	LAST_CHECKIN_ATTEMPT_MILLIS(String.valueOf(Long.MIN_VALUE)),
+	LAST_CHECKIN_SUCCESS_MILLIS(String.valueOf(Long.MIN_VALUE)),
+	LAST_CHECKIN_STATUS(""),
+	UPDATE_REQUIRED(FALSE),
+	UPDATE_AVAILABLE(FALSE),
 
-  VOLUME_UNITS_METRIC(FALSE),
-  TEMPERATURE_UNITS_CELSIUS(FALSE),
+	VOLUME_UNITS_METRIC(FALSE),
+	TEMPERATURE_UNITS_CELSIUS(FALSE),
 
-  STAY_AWAKE(TRUE),
-  KEEP_SCREEN_ON(TRUE),
+	STAY_AWAKE(TRUE),
+	KEEP_SCREEN_ON(TRUE),
 
-  EMAIL_ADDRESS(""),;
+	EMAIL_ADDRESS(""),;
 
-  private final String mDefaultValue;
+	private final String mDefaultValue;
 
-  ConfigKey(String defaultValue) {
-    mDefaultValue = defaultValue;
-  }
+	ConfigKey(String defaultValue) {
+		mDefaultValue = defaultValue;
+	}
 
-  /**
-   * Returns the key name that should be used.
-   *
-   * @return the key name
-   */
-  String getName() {
-    return name();
-  }
+	/**
+	 * Returns the key name that should be used.
+	 *
+	 * @return the key name
+	 */
+	String getName() {
+		return name();
+	}
 
-  String getDefault() {
-    return mDefaultValue;
-  }
+	String getDefault() {
+		return mDefaultValue;
+	}
 
 }
 

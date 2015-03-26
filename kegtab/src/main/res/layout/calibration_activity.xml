@@ -22,129 +22,129 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/calibrateHeader"
-        style="@style/header"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:text="Calibrate Meter"/>
+	<TextView
+			android:id="@+id/calibrateHeader"
+			style="@style/header"
+			android:layout_alignParentTop="true"
+			android:layout_centerHorizontal="true"
+			android:text="Calibrate Meter"/>
 
-    <TextView
-        android:id="@+id/calibrateDescription"
-        style="@style/subheader"
-        android:layout_below="@+id/calibrateHeader"
-        android:layout_centerHorizontal="true"
-        android:gravity="center"
-        android:maxWidth="700dp"
-        android:singleLine="false"
-        android:text="@string/calibrate_help_text"/>
+	<TextView
+			android:id="@+id/calibrateDescription"
+			style="@style/subheader"
+			android:layout_below="@+id/calibrateHeader"
+			android:layout_centerHorizontal="true"
+			android:gravity="center"
+			android:maxWidth="700dp"
+			android:singleLine="false"
+			android:text="@string/calibrate_help_text"/>
 
-    <RelativeLayout
-        android:id="@+id/calibrateControls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/calibrateDescription"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="32dp"
-        android:layout_marginTop="32dp"
-        android:background="@drawable/shape_rounded_rect">
+	<RelativeLayout
+			android:id="@+id/calibrateControls"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/calibrateDescription"
+			android:layout_centerHorizontal="true"
+			android:layout_marginBottom="32dp"
+			android:layout_marginTop="32dp"
+			android:background="@drawable/shape_rounded_rect">
 
-        <org.kegbot.app.view.BadgeView
-            android:id="@+id/ticksBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_margin="10dip"
-            android:background="@color/black20pct">
-        </org.kegbot.app.view.BadgeView>
+		<org.kegbot.app.view.BadgeView
+				android:id="@+id/ticksBadge"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:layout_margin="10dip"
+				android:background="@color/black20pct">
+		</org.kegbot.app.view.BadgeView>
 
-        <LinearLayout
-            android:id="@+id/seekGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toRightOf="@+id/ticksBadge"
-            android:gravity="center"
-            android:orientation="vertical">
+		<LinearLayout
+				android:id="@+id/seekGroup"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:layout_toRightOf="@+id/ticksBadge"
+				android:gravity="center"
+				android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/calibratePercent"
-                style="@style/smallText"
-                android:text="50%"/>
+			<TextView
+					android:id="@+id/calibratePercent"
+					style="@style/smallText"
+					android:text="50%"/>
 
-            <SeekBar
-                android:id="@+id/calibrateSeekBar"
-                android:layout_width="256dp"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
+			<SeekBar
+					android:id="@+id/calibrateSeekBar"
+					android:layout_width="256dp"
+					android:layout_height="wrap_content"/>
+		</LinearLayout>
 
-        <org.kegbot.app.view.BadgeView
-            android:id="@+id/volumeBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_margin="10dip"
-            android:layout_toRightOf="@+id/seekGroup"
-            android:background="@color/black20pct">
-        </org.kegbot.app.view.BadgeView>
-    </RelativeLayout>
+		<org.kegbot.app.view.BadgeView
+				android:id="@+id/volumeBadge"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:layout_margin="10dip"
+				android:layout_toRightOf="@+id/seekGroup"
+				android:background="@color/black20pct">
+		</org.kegbot.app.view.BadgeView>
+	</RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/calibrateMetrics"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/calibrateControls"
-        android:layout_centerHorizontal="true">
+	<RelativeLayout
+			android:id="@+id/calibrateMetrics"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/calibrateControls"
+			android:layout_centerHorizontal="true">
 
-        <TextView
-            android:id="@+id/calibratedTicksPerMlLabel"
-            style="@style/normalText"
-            android:layout_marginRight="8sp"
-            android:text="@string/calibrate_calibrated_ticks_ml"
-            android:textStyle="bold"/>
+		<TextView
+				android:id="@+id/calibratedTicksPerMlLabel"
+				style="@style/normalText"
+				android:layout_marginRight="8sp"
+				android:text="@string/calibrate_calibrated_ticks_ml"
+				android:textStyle="bold"/>
 
-        <TextView
-            android:id="@+id/calibratedTicksPerMl"
-            style="@style/normalText"
-            android:layout_toRightOf="@+id/calibratedTicksPerMlLabel"
-            android:text="@string/calibrate_value_zero"/>
+		<TextView
+				android:id="@+id/calibratedTicksPerMl"
+				style="@style/normalText"
+				android:layout_toRightOf="@+id/calibratedTicksPerMlLabel"
+				android:text="@string/calibrate_value_zero"/>
 
-        <TextView
-            android:id="@+id/originalTicksPerMlLabel"
-            style="@style/normalText"
-            android:layout_below="@+id/calibratedTicksPerMlLabel"
-            android:layout_marginRight="8sp"
-            android:text="@string/calibrate_original_ticks_ml"
-            android:textStyle="bold"/>
+		<TextView
+				android:id="@+id/originalTicksPerMlLabel"
+				style="@style/normalText"
+				android:layout_below="@+id/calibratedTicksPerMlLabel"
+				android:layout_marginRight="8sp"
+				android:text="@string/calibrate_original_ticks_ml"
+				android:textStyle="bold"/>
 
-        <TextView
-            android:id="@+id/originalTicksPerMl"
-            style="@style/normalText"
-            android:layout_below="@+id/calibratedTicksPerMlLabel"
-            android:layout_toRightOf="@+id/originalTicksPerMlLabel"
-            android:text="@string/calibrate_value_zero"/>
-    </RelativeLayout>
+		<TextView
+				android:id="@+id/originalTicksPerMl"
+				style="@style/normalText"
+				android:layout_below="@+id/calibratedTicksPerMlLabel"
+				android:layout_toRightOf="@+id/originalTicksPerMlLabel"
+				android:text="@string/calibrate_value_zero"/>
+	</RelativeLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/calibrateMetrics"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal"
-        android:layout_marginTop="32dp">
+	<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/calibrateMetrics"
+			android:layout_centerHorizontal="true"
+			android:orientation="horizontal"
+			android:layout_marginTop="32dp">
 
-        <Button
-            android:id="@+id/calibrateReset"
-            style="@style/mediumButton"
-            android:layout_width="wrap_content"
-            android:text="Reset Calibration"
-            android:layout_marginRight="32dp"/>
+		<Button
+				android:id="@+id/calibrateReset"
+				style="@style/mediumButton"
+				android:layout_width="wrap_content"
+				android:text="Reset Calibration"
+				android:layout_marginRight="32dp"/>
 
-        <Button
-            android:id="@+id/calibrateDone"
-            style="@style/mediumButton"
-            android:layout_width="wrap_content"
-            android:text="Save Calibration"/>
-    </LinearLayout>
+		<Button
+				android:id="@+id/calibrateDone"
+				style="@style/mediumButton"
+				android:layout_width="wrap_content"
+				android:text="Save Calibration"/>
+	</LinearLayout>
 
 </RelativeLayout>

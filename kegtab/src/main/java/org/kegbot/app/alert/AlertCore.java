@@ -22,14 +22,12 @@ package org.kegbot.app.alert;
 import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
-
 import org.kegbot.app.event.AlertEvent;
 import org.kegbot.core.Manager;
 
@@ -42,212 +40,212 @@ import java.util.Map;
  */
 public class AlertCore extends Manager {
 
-  private static final String TAG = AlertCore.class.getSimpleName();
+	private static final String TAG = AlertCore.class.getSimpleName();
 
-  private final Context mContext;
-  private final Bus mBus;
+	private final Context mContext;
+	private final Bus mBus;
 
-  private final Map<String, Alert> mAlerts = Maps.newLinkedHashMap();
+	private final Map<String, Alert> mAlerts = Maps.newLinkedHashMap();
 
-  public static class Builder {
-    private String mId;
-    private final String mTitle;
-    private String mDescription = "";
-    private String mSeverity = Alert.SEVERITY_INFO;
-    private Runnable mAction;
-    private String mActionName;
+	public AlertCore(final Bus bus, final Context context) {
+		super(bus);
+		mContext = context;
+		mBus = bus;
+	}
 
-    private boolean mDismissOnView = true;
-    private long mAutoDismissTimeoutMillis = 0;
+	public static Builder newBuilder(String title) {
+		return new Builder(title);
+	}
 
-    public Builder(String title) {
-      mTitle = title;
-    }
+	@Override
+	protected void start() {
+		super.start();
+		mBus.register(this);
+	}
 
-    public Builder setId(String id) {
-      mId = id;
-      return this;
-    }
+	@Override
+	protected void stop() {
+		mBus.unregister(this);
+		super.stop();
+	}
 
-    public Builder setDescription(String description) {
-      mDescription = description;
-      return this;
-    }
+	@Subscribe
+	public void onAlertEvent(AlertEvent event) {
+		Log.d(TAG, "Got alert!");
+		postAlert(event.getAlert());
+	}
 
-    public Builder severityInfo() {
-      mSeverity = Alert.SEVERITY_INFO;
-      return this;
-    }
+	@Override
+	public synchronized void postAlert(Alert alert) {
+		Log.d(TAG, "Posting alert: " + alert.getId());
+		final String alertId = alert.getId();
+		if (mAlerts.containsKey(alertId)) {
+			cancelAlert(alertId);
+		}
+		mAlerts.put(alertId, alert);
+		if (alert.getSeverity() == Alert.SEVERITY_ERROR) {
+			AlertActivity.showDialogs(mContext);
+		}
+		postOnMainThread(new AlertPostedEvent(alert));
+	}
 
-    public Builder severityWarning() {
-      mSeverity = Alert.SEVERITY_WARNING;
-      return this;
-    }
+	public synchronized boolean cancelAlert(String alertId) {
+		Log.d(TAG, "Canceling alert " + alertId);
+		final Alert alert = mAlerts.remove(alertId);
+		if (alert != null) {
+			Log.d(TAG, "Posting cancel event.");
+			postOnMainThread(new AlertCancelledEvent(alert));
+		}
+		return alert != null;
+	}
 
-    public Builder severityError() {
-      mSeverity = Alert.SEVERITY_ERROR;
-      return this;
-    }
+	public boolean cancelAlert(Alert alert) {
+		return cancelAlert(alert.getId());
+	}
 
-    public Builder setAction(Runnable action) {
-      mAction = action;
-      return this;
-    }
+	public List<Alert> getAlerts() {
+		return ImmutableList.<Alert>copyOf(mAlerts.values());
+	}
 
-    public Builder setActionName(String actionName) {
-      mActionName = actionName;
-      return this;
-    }
+	public Alert getAlert(String alertId) {
+		return mAlerts.get(alertId);
+	}
 
-    public Builder setAutoDismissTimeoutMillis(long autoDismissTimeoutMillis) {
-      mAutoDismissTimeoutMillis = autoDismissTimeoutMillis;
-      return this;
-    }
+	public static class Builder {
+		private final String mTitle;
+		private String mId;
+		private String mDescription = "";
+		private String mSeverity = Alert.SEVERITY_INFO;
+		private Runnable mAction;
+		private String mActionName;
 
-    public Builder setDismissOnView(boolean dismissOnView) {
-      mDismissOnView = dismissOnView;
-      return this;
-    }
+		private boolean mDismissOnView = true;
+		private long mAutoDismissTimeoutMillis = 0;
 
-    public Alert build() {
-      if (mId == null) {
-        mId = String.valueOf(new SecureRandom().nextInt());
-      }
-      return new Alert(mId, mTitle, mDescription, mSeverity, mAction,
-          mActionName, mDismissOnView, SystemClock.uptimeMillis(), mAutoDismissTimeoutMillis);
-    }
-  }
+		public Builder(String title) {
+			mTitle = title;
+		}
 
-  public static class Alert {
+		public Builder setId(String id) {
+			mId = id;
+			return this;
+		}
 
-    public static final String SEVERITY_INFO = "info";
-    public static final String SEVERITY_WARNING = "warning";
-    public static final String SEVERITY_ERROR = "error";
+		public Builder setDescription(String description) {
+			mDescription = description;
+			return this;
+		}
 
-    private final String mId;
-    private final String mTitle;
-    private final String mDescription;
-    private final String mSeverity;
-    private final Runnable mAction;
-    private final String mActionName;
-    private final boolean mDismissOnView;
-    private final long mPostTimeMillis;
-    private final long mAutoDismissTimeoutMillis;
+		public Builder severityInfo() {
+			mSeverity = Alert.SEVERITY_INFO;
+			return this;
+		}
 
-    Alert(final String id, final String title, final String description, final String severity,
-        final Runnable action, final String actionName, final boolean dismissOnView,
-        final long postTimeMillis, final long autoDismissTimeoutMillis) {
-      mId = Preconditions.checkNotNull(id);
-      mTitle = Preconditions.checkNotNull(title);
-      mDescription = Strings.nullToEmpty(description);
-      mAction = action;
-      mActionName = actionName;
-      mSeverity = Preconditions.checkNotNull(severity);
-      mDismissOnView = dismissOnView;
-      mPostTimeMillis = postTimeMillis;
-      mAutoDismissTimeoutMillis = autoDismissTimeoutMillis;
-    }
+		public Builder severityWarning() {
+			mSeverity = Alert.SEVERITY_WARNING;
+			return this;
+		}
 
-    public String getId() {
-      return mId;
-    }
+		public Builder severityError() {
+			mSeverity = Alert.SEVERITY_ERROR;
+			return this;
+		}
 
-    public String getTitle() {
-      return mTitle;
-    }
+		public Builder setAction(Runnable action) {
+			mAction = action;
+			return this;
+		}
 
-    public String getDescription() {
-      return mDescription;
-    }
+		public Builder setActionName(String actionName) {
+			mActionName = actionName;
+			return this;
+		}
 
-    public String getSeverity() {
-      return mSeverity;
-    }
+		public Builder setAutoDismissTimeoutMillis(long autoDismissTimeoutMillis) {
+			mAutoDismissTimeoutMillis = autoDismissTimeoutMillis;
+			return this;
+		}
 
-    public Runnable getAction() {
-      return mAction;
-    }
+		public Builder setDismissOnView(boolean dismissOnView) {
+			mDismissOnView = dismissOnView;
+			return this;
+		}
 
-    public String getActionName() {
-      return mActionName;
-    }
+		public Alert build() {
+			if (mId == null) {
+				mId = String.valueOf(new SecureRandom().nextInt());
+			}
+			return new Alert(mId, mTitle, mDescription, mSeverity, mAction,
+					mActionName, mDismissOnView, SystemClock.uptimeMillis(), mAutoDismissTimeoutMillis);
+		}
+	}
 
-    public boolean getDismissOnView() {
-      return mDismissOnView;
-    }
+	public static class Alert {
 
-    public long getPostTimeMillis() {
-      return mPostTimeMillis;
-    }
+		public static final String SEVERITY_INFO = "info";
+		public static final String SEVERITY_WARNING = "warning";
+		public static final String SEVERITY_ERROR = "error";
 
-    public long getAutoDismissTimeoutMillis() {
-      return mAutoDismissTimeoutMillis;
-    }
+		private final String mId;
+		private final String mTitle;
+		private final String mDescription;
+		private final String mSeverity;
+		private final Runnable mAction;
+		private final String mActionName;
+		private final boolean mDismissOnView;
+		private final long mPostTimeMillis;
+		private final long mAutoDismissTimeoutMillis;
 
-  }
+		Alert(final String id, final String title, final String description, final String severity,
+		      final Runnable action, final String actionName, final boolean dismissOnView,
+		      final long postTimeMillis, final long autoDismissTimeoutMillis) {
+			mId = Preconditions.checkNotNull(id);
+			mTitle = Preconditions.checkNotNull(title);
+			mDescription = Strings.nullToEmpty(description);
+			mAction = action;
+			mActionName = actionName;
+			mSeverity = Preconditions.checkNotNull(severity);
+			mDismissOnView = dismissOnView;
+			mPostTimeMillis = postTimeMillis;
+			mAutoDismissTimeoutMillis = autoDismissTimeoutMillis;
+		}
 
-  public AlertCore(final Bus bus, final Context context) {
-    super(bus);
-    mContext = context;
-    mBus = bus;
-  }
+		public String getId() {
+			return mId;
+		}
 
-  @Override
-  protected void start() {
-    super.start();
-    mBus.register(this);
-  }
+		public String getTitle() {
+			return mTitle;
+		}
 
-  @Override
-  protected void stop() {
-    mBus.unregister(this);
-    super.stop();
-  }
+		public String getDescription() {
+			return mDescription;
+		}
 
-  @Subscribe
-  public void onAlertEvent(AlertEvent event) {
-    Log.d(TAG, "Got alert!");
-    postAlert(event.getAlert());
-  }
+		public String getSeverity() {
+			return mSeverity;
+		}
 
-  @Override
-  public synchronized void postAlert(Alert alert) {
-    Log.d(TAG, "Posting alert: " + alert.getId());
-    final String alertId = alert.getId();
-    if (mAlerts.containsKey(alertId)) {
-      cancelAlert(alertId);
-    }
-    mAlerts.put(alertId, alert);
-    if (alert.getSeverity() == Alert.SEVERITY_ERROR) {
-      AlertActivity.showDialogs(mContext);
-    }
-    postOnMainThread(new AlertPostedEvent(alert));
-  }
+		public Runnable getAction() {
+			return mAction;
+		}
 
-  public synchronized boolean cancelAlert(String alertId) {
-    Log.d(TAG, "Canceling alert " + alertId);
-    final Alert alert = mAlerts.remove(alertId);
-    if (alert != null) {
-      Log.d(TAG, "Posting cancel event.");
-      postOnMainThread(new AlertCancelledEvent(alert));
-    }
-    return alert != null;
-  }
+		public String getActionName() {
+			return mActionName;
+		}
 
-  public boolean cancelAlert(Alert alert) {
-    return cancelAlert(alert.getId());
-  }
+		public boolean getDismissOnView() {
+			return mDismissOnView;
+		}
 
-  public List<Alert> getAlerts() {
-    return ImmutableList.<Alert>copyOf(mAlerts.values());
-  }
+		public long getPostTimeMillis() {
+			return mPostTimeMillis;
+		}
 
-  public Alert getAlert(String alertId) {
-    return mAlerts.get(alertId);
-  }
+		public long getAutoDismissTimeoutMillis() {
+			return mAutoDismissTimeoutMillis;
+		}
 
-  public static Builder newBuilder(String title) {
-    return new Builder(title);
-  }
+	}
 
 }

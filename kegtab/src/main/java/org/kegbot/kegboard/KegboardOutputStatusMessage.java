@@ -23,15 +23,15 @@ package org.kegbot.kegboard;
  */
 public class KegboardOutputStatusMessage extends KegboardMessage {
 
-  public static final int MESSAGE_TYPE = 0x12;
+	public static final int MESSAGE_TYPE = 0x12;
 
-  public KegboardOutputStatusMessage(byte[] wholeMessage) throws KegboardMessageException {
-    super(wholeMessage);
-  }
+	public KegboardOutputStatusMessage(byte[] wholeMessage) throws KegboardMessageException {
+		super(wholeMessage);
+	}
 
-  @Override
-  public short getMessageType() {
-    return MESSAGE_TYPE;
-  }
+	@Override
+	public short getMessageType() {
+		return MESSAGE_TYPE;
+	}
 
 }

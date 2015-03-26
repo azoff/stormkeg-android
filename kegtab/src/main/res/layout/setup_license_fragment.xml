@@ -23,58 +23,58 @@
             android:layout_height="fill_parent"
             android:background="@drawable/shape_rounded_rect">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center|left"
-        android:orientation="vertical">
+	<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center|left"
+			android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/license_agreement_title"
-            android:textSize="24sp"
-            android:textStyle="bold"/>
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/license_agreement_title"
+				android:textSize="24sp"
+				android:textStyle="bold"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:autoLink="web"
-            android:text="@string/license_agreement_description"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="18sp"/>
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:autoLink="web"
+				android:text="@string/license_agreement_description"
+				android:textColor="@android:color/darker_gray"
+				android:textSize="18sp"/>
 
-        <CheckBox
-            android:id="@+id/agreeLicense"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dip"
-            android:text="@string/checkbox_agree_text"
-            android:textSize="24sp"
-            android:textStyle="bold"/>
+		<CheckBox
+				android:id="@+id/agreeLicense"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="32dip"
+				android:text="@string/checkbox_agree_text"
+				android:textSize="24sp"
+				android:textStyle="bold"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/privacy_policy_title"
-            android:textSize="24sp"
-            android:textStyle="bold"/>
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/privacy_policy_title"
+				android:textSize="24sp"
+				android:textStyle="bold"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:autoLink="web"
-            android:text="@string/privacy_policy_agreement"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="18sp"/>
+		<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:autoLink="web"
+				android:text="@string/privacy_policy_agreement"
+				android:textColor="@android:color/darker_gray"
+				android:textSize="18sp"/>
 
-        <CheckBox
-            android:id="@+id/agreePrivacy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/checkbox_agree_text"
-            android:textSize="24sp"
-            android:textStyle="bold"/>
-    </LinearLayout>
+		<CheckBox
+				android:id="@+id/agreePrivacy"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/checkbox_agree_text"
+				android:textSize="24sp"
+				android:textStyle="bold"/>
+	</LinearLayout>
 
 </ScrollView>

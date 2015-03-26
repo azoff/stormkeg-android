@@ -24,14 +24,14 @@ import org.kegbot.core.AuthenticationToken;
 
 public class TokenDetachedEvent implements Event {
 
-  private final AuthenticationToken mToken;
+	private final AuthenticationToken mToken;
 
-  public TokenDetachedEvent(AuthenticationToken token) {
-    mToken = token;
-  }
+	public TokenDetachedEvent(AuthenticationToken token) {
+		mToken = token;
+	}
 
-  public AuthenticationToken getToken() {
-    return mToken;
-  }
+	public AuthenticationToken getToken() {
+		return mToken;
+	}
 
 }

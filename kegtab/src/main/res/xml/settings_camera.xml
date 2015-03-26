@@ -21,38 +21,38 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="Camera Settings">
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="config:USE_CAMERA"
-            android:summaryOff="The device's camera will never be shown"
-            android:summaryOn="The device's camera may be used"
-            android:title="Enable Camera Features">
-        </CheckBoxPreference>
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="config:TAKE_PHOTOS_DURING_REGISTRATION"
-            android:summaryOff="Photos will be skipped during registration"
-            android:summaryOn="User may add a photo during registration"
-            android:title="Take Photo During Registration"
-            android:dependency="config:USE_CAMERA">
-        </CheckBoxPreference>
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="config:AUTO_TAKE_PHOTOS"
-            android:summaryOff="Camera will not trigger unless requested"
-            android:summaryOn="Camera will automatically trigger during a pour"
-            android:title="Automatically Take Photos"
-            android:dependency="config:USE_CAMERA">
-        </CheckBoxPreference>
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="config:ENABLE_CAMERA_SOUNDS"
-            android:summaryOff="Sounds will not be played when taking photos"
-            android:summaryOn="Sounds will be played when taking photos"
-            android:title="Enable Camera Sounds"
-            android:dependency="config:USE_CAMERA">
-        </CheckBoxPreference>
-    </PreferenceCategory>
+	<PreferenceCategory android:title="Camera Settings">
+		<CheckBoxPreference
+				android:defaultValue="true"
+				android:key="config:USE_CAMERA"
+				android:summaryOff="The device's camera will never be shown"
+				android:summaryOn="The device's camera may be used"
+				android:title="Enable Camera Features">
+		</CheckBoxPreference>
+		<CheckBoxPreference
+				android:defaultValue="true"
+				android:key="config:TAKE_PHOTOS_DURING_REGISTRATION"
+				android:summaryOff="Photos will be skipped during registration"
+				android:summaryOn="User may add a photo during registration"
+				android:title="Take Photo During Registration"
+				android:dependency="config:USE_CAMERA">
+		</CheckBoxPreference>
+		<CheckBoxPreference
+				android:defaultValue="true"
+				android:key="config:AUTO_TAKE_PHOTOS"
+				android:summaryOff="Camera will not trigger unless requested"
+				android:summaryOn="Camera will automatically trigger during a pour"
+				android:title="Automatically Take Photos"
+				android:dependency="config:USE_CAMERA">
+		</CheckBoxPreference>
+		<CheckBoxPreference
+				android:defaultValue="true"
+				android:key="config:ENABLE_CAMERA_SOUNDS"
+				android:summaryOff="Sounds will not be played when taking photos"
+				android:summaryOn="Sounds will be played when taking photos"
+				android:title="Enable Camera Sounds"
+				android:dependency="config:USE_CAMERA">
+		</CheckBoxPreference>
+	</PreferenceCategory>
 
 </PreferenceScreen>

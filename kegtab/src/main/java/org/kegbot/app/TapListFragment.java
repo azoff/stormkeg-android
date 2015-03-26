@@ -31,19 +31,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-
+import butterknife.ButterKnife;
 import com.google.common.collect.Lists;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
-
 import org.kegbot.app.event.TapsChangedEvent;
 import org.kegbot.core.KegbotCore;
 import org.kegbot.core.TapManager;
 import org.kegbot.proto.Models.KegTap;
 
 import java.util.List;
-
-import butterknife.ButterKnife;
 
 /**
  * A list fragment representing a list of Taps. This fragment also supports tablet devices by
@@ -54,194 +51,190 @@ import butterknife.ButterKnife;
  */
 public class TapListFragment extends ListFragment {
 
-  private static final String TAG = TapListFragment.class.getSimpleName();
+	private static final String TAG = TapListFragment.class.getSimpleName();
 
-  /**
-   * The serialization (saved instance state) Bundle key representing the activated item position.
-   * Only used on tablets.
-   */
-  private static final String STATE_ACTIVATED_POSITION = "activated_position";
+	/**
+	 * The serialization (saved instance state) Bundle key representing the activated item position.
+	 * Only used on tablets.
+	 */
+	private static final String STATE_ACTIVATED_POSITION = "activated_position";
+	/**
+	 * A dummy implementation of the {@link Callbacks} interface that does nothing. Used only when
+	 * this fragment is not attached to an activity.
+	 */
+	private static Callbacks sDummyCallbacks = new Callbacks() {
+		@Override
+		public void onItemSelected(int tapId) {
+		}
+	};
+	/**
+	 * The fragment's current callback object, which is notified of list item clicks.
+	 */
+	private Callbacks mCallbacks = sDummyCallbacks;
+	private final List<KegTap> mTaps = Lists.newArrayList();
+	private ArrayAdapter<KegTap> mAdapter;
+	private Bus mBus;
+	/**
+	 * The current activated item position. Only used on tablets.
+	 */
+	private int mActivatedPosition = ListView.INVALID_POSITION;
 
-  /**
-   * The fragment's current callback object, which is notified of list item clicks.
-   */
-  private Callbacks mCallbacks = sDummyCallbacks;
+	/**
+	 * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
+	 * screen orientation changes).
+	 */
+	public TapListFragment() {
+	}
 
-  private ArrayAdapter<KegTap> mAdapter;
-  private final List<KegTap> mTaps = Lists.newArrayList();
-  private Bus mBus;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-  /**
-   * The current activated item position. Only used on tablets.
-   */
-  private int mActivatedPosition = ListView.INVALID_POSITION;
+		final TapManager tapManager = KegbotCore.getInstance(getActivity()).getTapManager();
+		mTaps.addAll(tapManager.getTaps());
 
-  /**
-   * A callback interface that all activities containing this fragment must implement. This
-   * mechanism allows activities to be notified of item selections.
-   */
-  public interface Callbacks {
-    /**
-     * Callback for when an item has been selected.
-     */
-    public void onItemSelected(int tapId);
-  }
+		mAdapter = new KegTapAdapter(
+				getActivity(), android.R.layout.simple_list_item_activated_1, android.R.id.text1, mTaps);
 
-  /**
-   * A dummy implementation of the {@link Callbacks} interface that does nothing. Used only when
-   * this fragment is not attached to an activity.
-   */
-  private static Callbacks sDummyCallbacks = new Callbacks() {
-    @Override
-    public void onItemSelected(int tapId) {
-    }
-  };
+		mBus = KegbotCore.getInstance(getActivity()).getBus();
 
-  /**
-   * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon
-   * screen orientation changes).
-   */
-  public TapListFragment() {
-  }
+		mBus.register(this);
+	}
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
+	@Override
+	public void onDestroy() {
+		mBus.unregister(this);
+		super.onDestroy();
+	}
 
-    final TapManager tapManager = KegbotCore.getInstance(getActivity()).getTapManager();
-    mTaps.addAll(tapManager.getTaps());
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		final View view = inflater.inflate(R.layout.tap_list_fragment_layout, container);
 
-    mAdapter = new KegTapAdapter(
-        getActivity(), android.R.layout.simple_list_item_activated_1, android.R.id.text1, mTaps);
+		final Button addButton = ButterKnife.findById(view, R.id.addTapButton);
+		addButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View arg0) {
+				startActivity(NewTapActivity.getStartIntent(getActivity()));
+			}
+		});
 
-    mBus = KegbotCore.getInstance(getActivity()).getBus();
+		return view;
+	}
 
-    mBus.register(this);
-  }
+	@Subscribe
+	public void onTapsListUpdated(final TapsChangedEvent event) {
+		Log.d(TAG, "onTapsListUpdated");
+		if (getListAdapter() == null) {
+			setListAdapter(mAdapter);
+		}
 
-  @Override
-  public void onDestroy() {
-    mBus.unregister(this);
-    super.onDestroy();
-  }
+		final List<KegTap> taps = event.getTaps();
+		if (!mTaps.equals(taps)) {
+			mTaps.clear();
+			mTaps.addAll(taps);
+			mAdapter.notifyDataSetChanged();
+		}
+	}
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final View view = inflater.inflate(R.layout.tap_list_fragment_layout, container);
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
 
-    final Button addButton = ButterKnife.findById(view, R.id.addTapButton);
-    addButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View arg0) {
-        startActivity(NewTapActivity.getStartIntent(getActivity()));
-      }
-    });
+		// Restore the previously serialized activated item position.
+		if (savedInstanceState != null
+				&& savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
+			setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
+		}
+	}
 
-    return view;
-  }
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
 
-  @Subscribe
-  public void onTapsListUpdated(final TapsChangedEvent event) {
-    Log.d(TAG, "onTapsListUpdated");
-    if (getListAdapter() == null) {
-      setListAdapter(mAdapter);
-    }
+		// Activities containing this fragment must implement its callbacks.
+		if (!(activity instanceof Callbacks)) {
+			throw new IllegalStateException("Activity must implement fragment's callbacks.");
+		}
 
-    final List<KegTap> taps = event.getTaps();
-    if (!mTaps.equals(taps)) {
-      mTaps.clear();
-      mTaps.addAll(taps);
-      mAdapter.notifyDataSetChanged();
-    }
-  }
+		mCallbacks = (Callbacks) activity;
+	}
 
-  @Override
-  public void onViewCreated(View view, Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
+	@Override
+	public void onDetach() {
+		super.onDetach();
 
-    // Restore the previously serialized activated item position.
-    if (savedInstanceState != null
-        && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-      setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
-    }
-  }
+		// Reset the active callbacks interface to the dummy implementation.
+		mCallbacks = sDummyCallbacks;
+	}
 
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
+	@Override
+	public void onListItemClick(ListView listView, View view, int position, long id) {
+		super.onListItemClick(listView, view, position, id);
 
-    // Activities containing this fragment must implement its callbacks.
-    if (!(activity instanceof Callbacks)) {
-      throw new IllegalStateException("Activity must implement fragment's callbacks.");
-    }
+		// Notify the active callbacks interface (the activity, if the
+		// fragment is attached to one) that an item has been selected.
+		mCallbacks.onItemSelected(mTaps.get(position).getId());
+	}
 
-    mCallbacks = (Callbacks) activity;
-  }
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		if (mActivatedPosition != ListView.INVALID_POSITION) {
+			// Serialize and persist the activated item position.
+			outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
+		}
+	}
 
-  @Override
-  public void onDetach() {
-    super.onDetach();
+	/**
+	 * Turns on activate-on-click mode. When this mode is on, list items will be given the 'activated'
+	 * state when touched.
+	 */
+	public void setActivateOnItemClick(boolean activateOnItemClick) {
+		// When setting CHOICE_MODE_SINGLE, ListView will automatically
+		// give items the 'activated' state when touched.
+		getListView().setChoiceMode(activateOnItemClick
+				? ListView.CHOICE_MODE_SINGLE
+				: ListView.CHOICE_MODE_NONE);
+	}
 
-    // Reset the active callbacks interface to the dummy implementation.
-    mCallbacks = sDummyCallbacks;
-  }
+	private void setActivatedPosition(int position) {
+		if (position == ListView.INVALID_POSITION) {
+			getListView().setItemChecked(mActivatedPosition, false);
+		} else {
+			getListView().setItemChecked(position, true);
+		}
 
-  @Override
-  public void onListItemClick(ListView listView, View view, int position, long id) {
-    super.onListItemClick(listView, view, position, id);
+		mActivatedPosition = position;
+	}
 
-    // Notify the active callbacks interface (the activity, if the
-    // fragment is attached to one) that an item has been selected.
-    mCallbacks.onItemSelected(mTaps.get(position).getId());
-  }
+	/**
+	 * A callback interface that all activities containing this fragment must implement. This
+	 * mechanism allows activities to be notified of item selections.
+	 */
+	public interface Callbacks {
+		/**
+		 * Callback for when an item has been selected.
+		 */
+		public void onItemSelected(int tapId);
+	}
 
-  @Override
-  public void onSaveInstanceState(Bundle outState) {
-    super.onSaveInstanceState(outState);
-    if (mActivatedPosition != ListView.INVALID_POSITION) {
-      // Serialize and persist the activated item position.
-      outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
-    }
-  }
+	private static class KegTapAdapter extends ArrayAdapter<KegTap> {
 
-  /**
-   * Turns on activate-on-click mode. When this mode is on, list items will be given the 'activated'
-   * state when touched.
-   */
-  public void setActivateOnItemClick(boolean activateOnItemClick) {
-    // When setting CHOICE_MODE_SINGLE, ListView will automatically
-    // give items the 'activated' state when touched.
-    getListView().setChoiceMode(activateOnItemClick
-        ? ListView.CHOICE_MODE_SINGLE
-        : ListView.CHOICE_MODE_NONE);
-  }
+		public KegTapAdapter(Context context, int resource, int textViewResourceId,
+		                     List<KegTap> objects) {
+			super(context, resource, textViewResourceId, objects);
+		}
 
-  private void setActivatedPosition(int position) {
-    if (position == ListView.INVALID_POSITION) {
-      getListView().setItemChecked(mActivatedPosition, false);
-    } else {
-      getListView().setItemChecked(position, true);
-    }
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			final View view = super.getView(position, convertView, parent);
+			final TextView title = (TextView) view.findViewById(android.R.id.text1);
+			final KegTap tap = getItem(position);
+			title.setText(tap.getName());
+			return view;
+		}
 
-    mActivatedPosition = position;
-  }
-
-  private static class KegTapAdapter extends ArrayAdapter<KegTap> {
-
-    public KegTapAdapter(Context context, int resource, int textViewResourceId,
-        List<KegTap> objects) {
-      super(context, resource, textViewResourceId, objects);
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      final View view = super.getView(position, convertView, parent);
-      final TextView title = (TextView) view.findViewById(android.R.id.text1);
-      final KegTap tap = getItem(position);
-      title.setText(tap.getName());
-      return view;
-    }
-
-  }
+	}
 
 }

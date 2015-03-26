@@ -23,35 +23,35 @@ package org.kegbot.app;
  */
 public class KegtabBroadcast {
 
-  /**
-   * Action set when a new temperature reading is recorded.
-   */
-  public static final String ACTION_THERMO_UPDATE = "org.kegbot.action.THERMO_UPDATE";
-  public static final String THERMO_UPDATE_EXTRA_SENSOR_NAME = "sensor_name";
-  public static final String THERMO_UPDATE_EXTRA_TEMP_C = "temp_c";
+	/**
+	 * Action set when a new temperature reading is recorded.
+	 */
+	public static final String ACTION_THERMO_UPDATE = "org.kegbot.action.THERMO_UPDATE";
+	public static final String THERMO_UPDATE_EXTRA_SENSOR_NAME = "sensor_name";
+	public static final String THERMO_UPDATE_EXTRA_TEMP_C = "temp_c";
 
-  public static final String ACTION_USER_AUTHED = "org.kegbot.action.USER_AUTHED";
-  public static final String USER_AUTHED_EXTRA_USERNAME = "username";
-  public static final String USER_AUTHED_EXTRA_TAP_NAME = "tap_name";
+	public static final String ACTION_USER_AUTHED = "org.kegbot.action.USER_AUTHED";
+	public static final String USER_AUTHED_EXTRA_USERNAME = "username";
+	public static final String USER_AUTHED_EXTRA_TAP_NAME = "tap_name";
 
-  public static final String DRINKER_SELECT_EXTRA_TAP_NAME = "tap";
+	public static final String DRINKER_SELECT_EXTRA_TAP_NAME = "tap";
 
-  public static final String ACTION_METER_UPDATE = "org.kegbot.action.METER_UPDATE";
-  public static final String METER_UPDATE_EXTRA_METER_NAME = "meter";
-  public static final String METER_UPDATE_EXTRA_TICKS = "ticks";
+	public static final String ACTION_METER_UPDATE = "org.kegbot.action.METER_UPDATE";
+	public static final String METER_UPDATE_EXTRA_METER_NAME = "meter";
+	public static final String METER_UPDATE_EXTRA_TICKS = "ticks";
 
-  public static final String ACTION_TOKEN_ADDED = "org.kegbot.action.TOKEN_ADDED";
-  public static final String TOKEN_ADDED_EXTRA_AUTH_DEVICE = "auth_device";
-  public static final String TOKEN_ADDED_EXTRA_TOKEN_VALUE = "token";
+	public static final String ACTION_TOKEN_ADDED = "org.kegbot.action.TOKEN_ADDED";
+	public static final String TOKEN_ADDED_EXTRA_AUTH_DEVICE = "auth_device";
+	public static final String TOKEN_ADDED_EXTRA_TOKEN_VALUE = "token";
 
-  public static final String ACTION_CONTROLLER_ADDED = "org.kegbot.action.CONTROLLER_ADDED";
-  public static final String CONTROLLER_ADDED_EXTRA_NAME = "name";
+	public static final String ACTION_CONTROLLER_ADDED = "org.kegbot.action.CONTROLLER_ADDED";
+	public static final String CONTROLLER_ADDED_EXTRA_NAME = "name";
 
-  public static final String ACTION_CONTROLLER_REMOVED = "org.kegbot.action.CONTROLLER_REMOVED";
-  public static final String CONTROLLER_REMOVED_EXTRA_NAME = "name";
+	public static final String ACTION_CONTROLLER_REMOVED = "org.kegbot.action.CONTROLLER_REMOVED";
+	public static final String CONTROLLER_REMOVED_EXTRA_NAME = "name";
 
-  private KegtabBroadcast() {
-    throw new IllegalStateException("Non-instantiable class.");
-  }
+	private KegtabBroadcast() {
+		throw new IllegalStateException("Non-instantiable class.");
+	}
 
 }

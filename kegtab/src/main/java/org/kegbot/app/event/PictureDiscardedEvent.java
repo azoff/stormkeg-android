@@ -25,14 +25,14 @@ package org.kegbot.app.event;
  */
 public class PictureDiscardedEvent implements Event {
 
-  private final String mFilename;
+	private final String mFilename;
 
-  public PictureDiscardedEvent(String filename) {
-    mFilename = filename;
-  }
+	public PictureDiscardedEvent(String filename) {
+		mFilename = filename;
+	}
 
-  public String getFilename() {
-    return mFilename;
-  }
+	public String getFilename() {
+		return mFilename;
+	}
 
 }

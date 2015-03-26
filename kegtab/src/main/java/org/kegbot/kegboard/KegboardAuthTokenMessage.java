@@ -25,71 +25,71 @@ import com.hoho.android.usbserial.util.HexDump;
  */
 public class KegboardAuthTokenMessage extends KegboardMessage {
 
-  public static final int MESSAGE_TYPE = 0x14;
+	public static final int MESSAGE_TYPE = 0x14;
 
-  public static final int TAG_DEVICE_NAME = 0x01;
-  public static final int TAG_TOKEN = 0x02;
-  public static final int TAG_STATUS = 0x03;
+	public static final int TAG_DEVICE_NAME = 0x01;
+	public static final int TAG_TOKEN = 0x02;
+	public static final int TAG_STATUS = 0x03;
 
-  private static final String CORE_ONEWIRE = "core.onewire";
+	private static final String CORE_ONEWIRE = "core.onewire";
 
-  private final String mComputedName;
-  private final String mComputedToken;
+	private final String mComputedName;
+	private final String mComputedToken;
 
-  public enum Status {
-    REMOVED,
-    PRESENT,
-    UNKNOWN;
-  }
+	public KegboardAuthTokenMessage(byte[] wholeMessage) throws KegboardMessageException {
+		super(wholeMessage);
 
-  public KegboardAuthTokenMessage(byte[] wholeMessage) throws KegboardMessageException {
-    super(wholeMessage);
+		final String tagName = readTagAsString(TAG_DEVICE_NAME);
+		byte[] tokenBytes = readTag(TAG_TOKEN);
+		if (tokenBytes == null) {
+			tokenBytes = new byte[0];
+		}
 
-    final String tagName = readTagAsString(TAG_DEVICE_NAME);
-    byte[] tokenBytes = readTag(TAG_TOKEN);
-    if (tokenBytes == null) {
-      tokenBytes = new byte[0];
-    }
+		// Reverse byte order.
+		final byte[] reversedBytes = new byte[tokenBytes.length];
+		for (int i = 0; i < reversedBytes.length; i++) {
+			reversedBytes[tokenBytes.length - i - 1] = tokenBytes[i];
+		}
+		mComputedToken = HexDump.toHexString(reversedBytes).toLowerCase();
 
-    // Reverse byte order.
-    final byte[] reversedBytes = new byte[tokenBytes.length];
-    for (int i = 0; i < reversedBytes.length; i++) {
-      reversedBytes[tokenBytes.length - i - 1] = tokenBytes[i];
-    }
-    mComputedToken = HexDump.toHexString(reversedBytes).toLowerCase();
+		// Rename "onewire" -> "core.onewire"
+		if ("onewire".equals(tagName)) {
+			mComputedName = CORE_ONEWIRE;
+		} else {
+			mComputedName = tagName;
+		}
+	}
 
-    // Rename "onewire" -> "core.onewire"
-    if ("onewire".equals(tagName)) {
-      mComputedName = CORE_ONEWIRE;
-    } else {
-      mComputedName = tagName;
-    }
-  }
+	@Override
+	protected String getStringExtra() {
+		return String.format("name=%s token=%s status=%s", getName(), getToken(), getStatus());
+	}
 
-  @Override
-  protected String getStringExtra() {
-    return String.format("name=%s token=%s status=%s", getName(), getToken(), getStatus());
-  }
+	public String getName() {
+		return mComputedName;
+	}
 
-  public String getName() {
-    return mComputedName;
-  }
+	public String getToken() {
+		return mComputedToken;
+	}
 
-  public String getToken() {
-    return mComputedToken;
-  }
+	public Status getStatus() {
+		byte[] statusBytes = readTag(TAG_STATUS);
+		if (statusBytes == null || statusBytes.length == 0) {
+			return Status.UNKNOWN;
+		}
+		return statusBytes[0] == 1 ? Status.PRESENT : Status.REMOVED;
+	}
 
-  public Status getStatus() {
-    byte[] statusBytes = readTag(TAG_STATUS);
-    if (statusBytes == null || statusBytes.length == 0) {
-      return Status.UNKNOWN;
-    }
-    return statusBytes[0] == 1 ? Status.PRESENT : Status.REMOVED;
-  }
+	@Override
+	public short getMessageType() {
+		return MESSAGE_TYPE;
+	}
 
-  @Override
-  public short getMessageType() {
-    return MESSAGE_TYPE;
-  }
+	public enum Status {
+		REMOVED,
+		PRESENT,
+		UNKNOWN;
+	}
 
 }

@@ -28,9 +28,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-
 import com.google.common.base.Strings;
-
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.core.KegbotCore;
 
@@ -41,112 +39,107 @@ import org.kegbot.core.KegbotCore;
  */
 public class HomeControlsFragment extends Fragment {
 
-  private static final String TAG = HomeControlsFragment.class.getSimpleName();
+	private static final String TAG = HomeControlsFragment.class.getSimpleName();
+	private static final int REQUEST_AUTHENTICATE = 1000;
+	private final OnClickListener mOnBeerMeClickedListener = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			if (mConfig.useAccounts()) {
+				final Intent intent = KegtabCommon.getAuthDrinkerActivityIntent(getActivity());
+				startActivityForResult(intent, REQUEST_AUTHENTICATE);
+			} else {
+				mCore.getFlowManager().activateUserAmbiguousTap("");
+			}
+		}
+	};
+	private static final int REQUEST_CREATE_DRINKER = 1001;
+	private final OnClickListener mOnNewDrinkerClickedListener = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			final Intent intent = KegtabCommon.getCreateDrinkerActivityIntent(getActivity());
+			startActivityForResult(intent, REQUEST_CREATE_DRINKER);
+		}
+	};
+	private KegbotCore mCore;
+	private AppConfiguration mConfig;
+	private View mView;
+	private Button mBeerMeButton;
+	private Button mNewDrinkerButton;
 
-  private KegbotCore mCore;
-  private AppConfiguration mConfig;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+	}
 
-  private View mView;
-  private Button mBeerMeButton;
-  private Button mNewDrinkerButton;
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mView = inflater.inflate(R.layout.main_controls_fragment_layout, container, false);
 
-  private static final int REQUEST_AUTHENTICATE = 1000;
-  private static final int REQUEST_CREATE_DRINKER = 1001;
+		mBeerMeButton = (Button) mView.findViewById(R.id.beerMeButton);
+		mBeerMeButton.setOnClickListener(mOnBeerMeClickedListener);
 
-  private final OnClickListener mOnBeerMeClickedListener = new OnClickListener() {
-    @Override
-    public void onClick(View v) {
-      if (mConfig.useAccounts()) {
-        final Intent intent = KegtabCommon.getAuthDrinkerActivityIntent(getActivity());
-        startActivityForResult(intent, REQUEST_AUTHENTICATE);
-      } else {
-        mCore.getFlowManager().activateUserAmbiguousTap("");
-      }
-    }
-  };
+		mNewDrinkerButton = (Button) mView.findViewById(R.id.newDrinkerButton);
+		mNewDrinkerButton.setOnClickListener(mOnNewDrinkerClickedListener);
 
-  private final OnClickListener mOnNewDrinkerClickedListener = new OnClickListener() {
-    @Override
-    public void onClick(View v) {
-      final Intent intent = KegtabCommon.getCreateDrinkerActivityIntent(getActivity());
-      startActivityForResult(intent, REQUEST_CREATE_DRINKER);
-    }
-  };
+		return mView;
+	}
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-  }
+	@Override
+	public void onResume() {
+		super.onResume();
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    mView = inflater.inflate(R.layout.main_controls_fragment_layout, container, false);
+		mCore = KegbotCore.getInstance(getActivity());
+		mConfig = mCore.getConfiguration();
 
-    mBeerMeButton = (Button) mView.findViewById(R.id.beerMeButton);
-    mBeerMeButton.setOnClickListener(mOnBeerMeClickedListener);
+		boolean showControls = false;
+		if (mConfig.getAllowManualLogin()) {
+			mBeerMeButton.setVisibility(View.VISIBLE);
+			showControls = true;
+		} else {
+			mBeerMeButton.setVisibility(View.GONE);
+		}
 
-    mNewDrinkerButton = (Button) mView.findViewById(R.id.newDrinkerButton);
-    mNewDrinkerButton.setOnClickListener(mOnNewDrinkerClickedListener);
+		if (mConfig.getAllowRegistration() && mConfig.useAccounts()) {
+			mNewDrinkerButton.setVisibility(View.VISIBLE);
+			showControls = true;
+		} else {
+			mNewDrinkerButton.setVisibility(View.GONE);
+		}
 
-    return mView;
-  }
+		if (showControls && mConfig.getRunCore()) {
+			mView.setVisibility(View.VISIBLE);
+		} else {
+			mView.setVisibility(View.GONE);
+		}
+	}
 
-  @Override
-  public void onResume() {
-    super.onResume();
-
-    mCore = KegbotCore.getInstance(getActivity());
-    mConfig = mCore.getConfiguration();
-
-    boolean showControls = false;
-    if (mConfig.getAllowManualLogin()) {
-      mBeerMeButton.setVisibility(View.VISIBLE);
-      showControls = true;
-    } else {
-      mBeerMeButton.setVisibility(View.GONE);
-    }
-
-    if (mConfig.getAllowRegistration() && mConfig.useAccounts()) {
-      mNewDrinkerButton.setVisibility(View.VISIBLE);
-      showControls = true;
-    } else {
-      mNewDrinkerButton.setVisibility(View.GONE);
-    }
-
-    if (showControls && mConfig.getRunCore()) {
-      mView.setVisibility(View.VISIBLE);
-    } else {
-      mView.setVisibility(View.GONE);
-    }
-  }
-
-  @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    switch (requestCode) {
-      case REQUEST_AUTHENTICATE:
-        Log.d(TAG, "Got authentication result.");
-        if (resultCode == Activity.RESULT_OK && data != null) {
-          final String username =
-              data.getStringExtra(KegtabCommon.ACTIVITY_AUTH_DRINKER_RESULT_EXTRA_USERNAME);
-          if (!Strings.isNullOrEmpty(username)) {
-            AuthenticatingActivity.startAndAuthenticate(getActivity(), username);
-          }
-        }
-        break;
-      case REQUEST_CREATE_DRINKER:
-        Log.d(TAG, "Got registration result.");
-        if (resultCode == Activity.RESULT_OK && data != null) {
-          final String username =
-              data.getStringExtra(KegtabCommon.ACTIVITY_CREATE_DRINKER_RESULT_EXTRA_USERNAME);
-          if (!Strings.isNullOrEmpty(username)) {
-            Log.d(TAG, "Authenticating newly-created user.");
-            AuthenticatingActivity.startAndAuthenticate(getActivity(), username);
-          }
-        }
-        break;
-      default:
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-  }
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+			case REQUEST_AUTHENTICATE:
+				Log.d(TAG, "Got authentication result.");
+				if (resultCode == Activity.RESULT_OK && data != null) {
+					final String username =
+							data.getStringExtra(KegtabCommon.ACTIVITY_AUTH_DRINKER_RESULT_EXTRA_USERNAME);
+					if (!Strings.isNullOrEmpty(username)) {
+						AuthenticatingActivity.startAndAuthenticate(getActivity(), username);
+					}
+				}
+				break;
+			case REQUEST_CREATE_DRINKER:
+				Log.d(TAG, "Got registration result.");
+				if (resultCode == Activity.RESULT_OK && data != null) {
+					final String username =
+							data.getStringExtra(KegtabCommon.ACTIVITY_CREATE_DRINKER_RESULT_EXTRA_USERNAME);
+					if (!Strings.isNullOrEmpty(username)) {
+						Log.d(TAG, "Authenticating newly-created user.");
+						AuthenticatingActivity.startAndAuthenticate(getActivity(), username);
+					}
+				}
+				break;
+			default:
+				super.onActivityResult(requestCode, resultCode, data);
+		}
+	}
 
 }

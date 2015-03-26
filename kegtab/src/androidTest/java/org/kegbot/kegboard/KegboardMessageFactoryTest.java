@@ -31,67 +31,67 @@ import java.util.Map;
  */
 public class KegboardMessageFactoryTest extends InstrumentationTestCase {
 
-  private KegboardMessageFactory mFactory;
+	private KegboardMessageFactory mFactory;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    mFactory = new KegboardMessageFactory();
-  }
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+		mFactory = new KegboardMessageFactory();
+	}
 
-  @Override
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
+	@Override
+	protected void tearDown() throws Exception {
+		super.tearDown();
+	}
 
-  public void testReader() throws IOException {
-    List<KegboardMessage> messages = new ArrayList<KegboardMessage>();
+	public void testReader() throws IOException {
+		List<KegboardMessage> messages = new ArrayList<KegboardMessage>();
 
-    InputStream is =
-        getInstrumentation().getTargetContext().getResources().getAssets().open("one_flow_active.bin");
-    try {
-      byte[] buf = new byte[76];
-      while (true) {
-        int amt = is.read(buf);
-        if (amt < 0) {
-          break;
-        }
+		InputStream is =
+				getInstrumentation().getTargetContext().getResources().getAssets().open("one_flow_active.bin");
+		try {
+			byte[] buf = new byte[76];
+			while (true) {
+				int amt = is.read(buf);
+				if (amt < 0) {
+					break;
+				}
 
-        mFactory.addBytes(buf, amt);
-      }
+				mFactory.addBytes(buf, amt);
+			}
 
-      while (true) {
-        final KegboardMessage message = mFactory.getMessage();
-        if (message == null) {
-          break;
-        }
-        messages.add(message);
-      }
+			while (true) {
+				final KegboardMessage message = mFactory.getMessage();
+				if (message == null) {
+					break;
+				}
+				messages.add(message);
+			}
 
-      assertEquals(23, messages.size());
-      assertTrue(messages.get(0) instanceof KegboardHelloMessage);
-      assertTrue(messages.get(2) instanceof KegboardMeterStatusMessage);
+			assertEquals(23, messages.size());
+			assertTrue(messages.get(0) instanceof KegboardHelloMessage);
+			assertTrue(messages.get(2) instanceof KegboardMeterStatusMessage);
 
-      KegboardMeterStatusMessage status = (KegboardMeterStatusMessage) messages.get(2);
+			KegboardMeterStatusMessage status = (KegboardMeterStatusMessage) messages.get(2);
 
-      Map<Integer, byte[]> tags = status.mTags;
-      dumpTags(tags);
-      assertEquals(2, tags.size());
+			Map<Integer, byte[]> tags = status.mTags;
+			dumpTags(tags);
+			assertEquals(2, tags.size());
 
-      for (KegboardMessage message : messages) {
-        System.out.println(message);
-      }
-    } finally {
-      is.close();
-    }
+			for (KegboardMessage message : messages) {
+				System.out.println(message);
+			}
+		} finally {
+			is.close();
+		}
 
-  }
+	}
 
-  private void dumpTags(Map<Integer, byte[]> tags) {
-    for (Map.Entry<Integer, byte[]> entry : tags.entrySet()) {
-      System.out.println(String.format("%04x", entry.getKey())
-          + HexDump.dumpHexString(entry.getValue()));
-    }
-  }
+	private void dumpTags(Map<Integer, byte[]> tags) {
+		for (Map.Entry<Integer, byte[]> entry : tags.entrySet()) {
+			System.out.println(String.format("%04x", entry.getKey())
+					+ HexDump.dumpHexString(entry.getValue()));
+		}
+	}
 
 }

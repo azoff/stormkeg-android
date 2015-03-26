@@ -36,15 +36,8 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.ViewFlipper;
-
+import android.widget.*;
 import com.google.common.base.Strings;
-
 import org.kegbot.app.camera.CameraFragment;
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.app.setup.SetupProgressDialogFragment;
@@ -57,298 +50,298 @@ import java.util.regex.Pattern;
 
 public class DrinkerRegistrationActivity extends CoreActivity {
 
-  private static final String TAG = DrinkerRegistrationActivity.class.getSimpleName();
+	private static final String TAG = DrinkerRegistrationActivity.class.getSimpleName();
 
-  private static final Pattern USERNAME_PATTERN = Pattern.compile("^[\\w-]+$");
+	private static final Pattern USERNAME_PATTERN = Pattern.compile("^[\\w-]+$");
 
-  private KegbotCore mCore;
+	private KegbotCore mCore;
 
-  private AppConfiguration mConfig;
-  private ViewFlipper mFlipper;
-  private Button mSubmitButton;
-  private TextView mSubtitle;
-  private EditText mUsername;
-  private EditText mEmail;
-  private CheckBox mConsentCheckbox;
-  private CameraFragment mCameraFragment;
+	private AppConfiguration mConfig;
+	private ViewFlipper mFlipper;
+	private Button mSubmitButton;
+	private TextView mSubtitle;
+	private EditText mUsername;
+	private EditText mEmail;
+	private CheckBox mConsentCheckbox;
+	private CameraFragment mCameraFragment;
 
-  private DialogFragment mDialog;
+	private DialogFragment mDialog;
 
-  private class CheckUsernameTask extends AsyncTask<String, Void, Boolean> {
+	private static boolean isValidEmail(String target) {
+		if (Strings.isNullOrEmpty(target)) {
+			return false;
+		}
+		return Patterns.EMAIL_ADDRESS.matcher(target).matches();
+	}
 
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-      showProgressDialog();
-    }
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-    @Override
-    protected Boolean doInBackground(String... params) {
-      Backend api = mCore.getBackend();
-      try {
-        api.getUser(params[0]);
-        return Boolean.TRUE;
-      } catch (BackendException e) {
-      }
-      return Boolean.FALSE;
-    }
+		final ActionBar actionBar = getActionBar();
+		if (actionBar != null) {
+			actionBar.hide();
+		}
 
-    @Override
-    protected void onPostExecute(Boolean result) {
-      super.onPostExecute(result);
-      hideDialog();
-      if (result.booleanValue()) {
-        // User already exists.
-        mUsername.setError("This username is not available.");
-      } else {
-        if (mConfig.getUseCamera() && mConfig.getTakePhotosDuringRegistration()) {
-          showGetPhoto();
-        } else {
-          doRegister();
-        }
-      }
-    }
+		setContentView(R.layout.create_drinker_activity);
 
-  }
+		mConfig = KegbotApplication.get(this).getConfig();
 
-  private class RegistrationTask extends AsyncTask<Void, Void, User> {
-    @Override
-    protected User doInBackground(Void... params) {
-      Backend api = mCore.getBackend();
-      Log.d(TAG, "Registering...");
-      final String imagePath = mCameraFragment.getLastFilename();
-      try {
-        final long startTime = SystemClock.elapsedRealtime();
-        final User user = api.createUser(mUsername.getText().toString(),
-            mEmail.getText().toString(),
-            null, imagePath);
+		mSubtitle = (TextView) findViewById(R.id.new_drinker_subtitle);
+		mFlipper = (ViewFlipper) findViewById(R.id.new_drinker_flipper);
+		mFlipper.setInAnimation(this, android.R.anim.fade_in);
+		mFlipper.setOutAnimation(this, android.R.anim.fade_out);
+		mEmail = (EditText) findViewById(R.id.email);
+		mUsername = (EditText) findViewById(R.id.username);
+		mSubmitButton = (Button) findViewById(R.id.submitButton);
+		mConsentCheckbox = (CheckBox) findViewById(R.id.keghubAgreeTerms);
 
-        // Make sure we're showing the progress bar for at least
-        // 2s; the flashing is jarring / hard to read otherwise.
-        final long duration = SystemClock.elapsedRealtime() - startTime;
-        if (duration < 2000) {
-          SystemClock.sleep(2000 - duration);
-        }
+		final String terms = getString(R.string.register_agree_terms_text);
+		mConsentCheckbox.setText(Html.fromHtml(terms));
+		mConsentCheckbox.setMovementMethod(LinkMovementMethod.getInstance());
+		mConsentCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+				if (b) {
+					compoundButton.setError(null);
+				}
+			}
+		});
 
-        return user;
-      } catch (BackendException e) {
-        // TODO: Highlight field errors.
-        Log.w(TAG, "Registration failed: " + e.toString());
-      }
-      return null;
-    }
+		if (!mConfig.isKeghub()) {
+			mConsentCheckbox.setVisibility(View.GONE);
+		}
 
-    @Override
-    protected void onPostExecute(User result) {
-      hideDialog();
-      if (result != null) {
-        Log.d(TAG, "Registration succeeded!");
-        final Intent data = new Intent();
-        data.putExtra(KegtabCommon.ACTIVITY_CREATE_DRINKER_RESULT_EXTRA_USERNAME,
-            result.getUsername());
-        setResult(RESULT_OK, data);
+		mEmail.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				if (actionId == EditorInfo.IME_ACTION_NEXT &&
+						(event == null || event.getAction() == KeyEvent.ACTION_DOWN)) {
+					onEmailAddressEntered();
+				}
+				return true;
+			}
+		});
 
-        finish();
-      }
-    }
-  }
+		mUsername.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			}
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
 
-    final ActionBar actionBar = getActionBar();
-    if (actionBar != null) {
-      actionBar.hide();
-    }
+			@Override
+			public void afterTextChanged(Editable s) {
+				String text = s.toString();
+				int length = text.length();
 
-    setContentView(R.layout.create_drinker_activity);
+				if (!USERNAME_PATTERN.matcher(text).matches()) {
+					if (length > 0) {
+						s.delete(length - 1, length);
+					}
+				}
+			}
+		});
 
-    mConfig = KegbotApplication.get(this).getConfig();
+		mUsername.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				if (actionId == EditorInfo.IME_ACTION_NEXT &&
+						(event == null || event.getAction() == KeyEvent.ACTION_DOWN)) {
+					onUsernameEntered();
+				}
+				return true;
+			}
+		});
 
-    mSubtitle = (TextView) findViewById(R.id.new_drinker_subtitle);
-    mFlipper = (ViewFlipper) findViewById(R.id.new_drinker_flipper);
-    mFlipper.setInAnimation(this, android.R.anim.fade_in);
-    mFlipper.setOutAnimation(this, android.R.anim.fade_out);
-    mEmail = (EditText) findViewById(R.id.email);
-    mUsername = (EditText) findViewById(R.id.username);
-    mSubmitButton = (Button) findViewById(R.id.submitButton);
-    mConsentCheckbox = (CheckBox) findViewById(R.id.keghubAgreeTerms);
+		mCameraFragment = (CameraFragment) getFragmentManager().findFragmentById(R.id.camera);
+		mCameraFragment.getView().setVisibility(View.GONE);
 
-    final String terms = getString(R.string.register_agree_terms_text);
-    mConsentCheckbox.setText(Html.fromHtml(terms));
-    mConsentCheckbox.setMovementMethod(LinkMovementMethod.getInstance());
-    mConsentCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-      @Override
-      public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-        if (b) {
-          compoundButton.setError(null);
-        }
-      }
-    });
+		mSubmitButton.setOnClickListener(new View.OnClickListener() {
 
-    if (!mConfig.isKeghub()) {
-      mConsentCheckbox.setVisibility(View.GONE);
-    }
+			@Override
+			public void onClick(View v) {
+				if (mSubmitButton.isEnabled()) {
+					mSubmitButton.setEnabled(false);
+					doRegister();
+				}
+			}
+		});
+	}
 
-    mEmail.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-      @Override
-      public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if (actionId == EditorInfo.IME_ACTION_NEXT &&
-            (event == null || event.getAction() == KeyEvent.ACTION_DOWN)) {
-          onEmailAddressEntered();
-        }
-        return true;
-      }
-    });
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mCore = KegbotCore.getInstance(this);
+	}
 
-    mUsername.addTextChangedListener(new TextWatcher() {
-      @Override
-      public void onTextChanged(CharSequence s, int start, int before, int count) {
-      }
+	@Override
+	public void onBackPressed() {
+		final int child = mFlipper.getDisplayedChild();
+		if (child > 0) {
+			mFlipper.setDisplayedChild(child - 1);
+		} else {
+			super.onBackPressed();
+		}
+	}
 
-      @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-      }
+	private void onEmailAddressEntered() {
+		final String emailAddress = mEmail.getText().toString();
+		if (!isValidEmail(emailAddress)) {
+			Log.d(TAG, "Invalid email address: " + emailAddress);
+			mEmail.setError(getString(R.string.register_error_email_invalid));
+			return;
+		}
 
-      @Override
-      public void afterTextChanged(Editable s) {
-        String text = s.toString();
-        int length = text.length();
+		showGetUsername();
+	}
 
-        if (!USERNAME_PATTERN.matcher(text).matches()) {
-          if (length > 0) {
-            s.delete(length - 1, length);
-          }
-        }
-      }
-    });
+	private void onUsernameEntered() {
+		final String username = mUsername.getText().toString();
+		if (!USERNAME_PATTERN.matcher(username).matches()) {
+			mUsername.setError("Please enter a valid username.");
+			showSoftKeyboard(true);
+			return;
+		}
 
-    mUsername.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-      @Override
-      public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if (actionId == EditorInfo.IME_ACTION_NEXT &&
-            (event == null || event.getAction() == KeyEvent.ACTION_DOWN)) {
-          onUsernameEntered();
-        }
-        return true;
-      }
-    });
+		if (mConsentCheckbox.getVisibility() == View.VISIBLE) {
+			if (!mConsentCheckbox.isChecked()) {
+				mConsentCheckbox.setError(getString(R.string.register_error_must_agree));
+				return;
+			}
+		}
 
-    mCameraFragment = (CameraFragment) getFragmentManager().findFragmentById(R.id.camera);
-    mCameraFragment.getView().setVisibility(View.GONE);
+		new CheckUsernameTask().execute(username);
+	}
 
-    mSubmitButton.setOnClickListener(new View.OnClickListener() {
+	private void showGetUsername() {
+		mFlipper.setDisplayedChild(1);
+		mSubtitle.setText(R.string.register_username_description);
+		showSoftKeyboard(true);
+	}
 
-      @Override
-      public void onClick(View v) {
-        if (mSubmitButton.isEnabled()) {
-          mSubmitButton.setEnabled(false);
-          doRegister();
-        }
-      }
-    });
-  }
+	private void showGetPhoto() {
+		mCameraFragment.getView().setVisibility(View.VISIBLE);
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-    mCore = KegbotCore.getInstance(this);
-  }
+		mFlipper.setDisplayedChild(2);
+		mSubtitle.setText(R.string.register_photo_description);
+		showSoftKeyboard(false);
+	}
 
-  @Override
-  public void onBackPressed() {
-    final int child = mFlipper.getDisplayedChild();
-    if (child > 0) {
-      mFlipper.setDisplayedChild(child - 1);
-    } else {
-      super.onBackPressed();
-    }
-  }
+	private void showSoftKeyboard(boolean enable) {
+		InputMethodManager imm = (InputMethodManager) getSystemService(
+				Context.INPUT_METHOD_SERVICE);
+		if (enable) {
+			imm.showSoftInput(mFlipper, 0);
+		} else {
+			imm.hideSoftInputFromWindow(mFlipper.getWindowToken(), 0);
+		}
+	}
 
-  private void onEmailAddressEntered() {
-    final String emailAddress = mEmail.getText().toString();
-    if (!isValidEmail(emailAddress)) {
-      Log.d(TAG, "Invalid email address: " + emailAddress);
-      mEmail.setError(getString(R.string.register_error_email_invalid));
-      return;
-    }
+	private void doRegister() {
+		showProgressDialog();
+		new RegistrationTask().execute();
+	}
 
-    showGetUsername();
-  }
+	private void showProgressDialog() {
+		hideDialog();
+		mDialog = new SetupProgressDialogFragment(new SetupProgressDialogFragment.Listener() {
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				//mHandler.sendEmptyMessage(MESSAGE_VALIDATION_ABORTED);
+			}
+		});
+		//mDialog.getDialog().setTitle("Registering");
+		mDialog.show(getFragmentManager(), "dialog");
+	}
 
-  private void onUsernameEntered() {
-    final String username = mUsername.getText().toString();
-    if (!USERNAME_PATTERN.matcher(username).matches()) {
-      mUsername.setError("Please enter a valid username.");
-      showSoftKeyboard(true);
-      return;
-    }
+	private void hideDialog() {
+		if (mDialog != null) {
+			mDialog.dismiss();
+			mDialog = null;
+		}
+		mSubmitButton.setEnabled(true);
+	}
 
-    if (mConsentCheckbox.getVisibility() == View.VISIBLE) {
-      if (!mConsentCheckbox.isChecked()) {
-        mConsentCheckbox.setError(getString(R.string.register_error_must_agree));
-        return;
-      }
-    }
+	private class CheckUsernameTask extends AsyncTask<String, Void, Boolean> {
 
-    new CheckUsernameTask().execute(username);
-  }
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			showProgressDialog();
+		}
 
-  private void showGetUsername() {
-    mFlipper.setDisplayedChild(1);
-    mSubtitle.setText(R.string.register_username_description);
-    showSoftKeyboard(true);
-  }
+		@Override
+		protected Boolean doInBackground(String... params) {
+			Backend api = mCore.getBackend();
+			try {
+				api.getUser(params[0]);
+				return Boolean.TRUE;
+			} catch (BackendException e) {
+			}
+			return Boolean.FALSE;
+		}
 
-  private void showGetPhoto() {
-    mCameraFragment.getView().setVisibility(View.VISIBLE);
+		@Override
+		protected void onPostExecute(Boolean result) {
+			super.onPostExecute(result);
+			hideDialog();
+			if (result.booleanValue()) {
+				// User already exists.
+				mUsername.setError("This username is not available.");
+			} else {
+				if (mConfig.getUseCamera() && mConfig.getTakePhotosDuringRegistration()) {
+					showGetPhoto();
+				} else {
+					doRegister();
+				}
+			}
+		}
 
-    mFlipper.setDisplayedChild(2);
-    mSubtitle.setText(R.string.register_photo_description);
-    showSoftKeyboard(false);
-  }
+	}
 
-  private void showSoftKeyboard(boolean enable) {
-    InputMethodManager imm = (InputMethodManager) getSystemService(
-        Context.INPUT_METHOD_SERVICE);
-    if (enable) {
-      imm.showSoftInput(mFlipper, 0);
-    } else {
-      imm.hideSoftInputFromWindow(mFlipper.getWindowToken(), 0);
-    }
-  }
+	private class RegistrationTask extends AsyncTask<Void, Void, User> {
+		@Override
+		protected User doInBackground(Void... params) {
+			Backend api = mCore.getBackend();
+			Log.d(TAG, "Registering...");
+			final String imagePath = mCameraFragment.getLastFilename();
+			try {
+				final long startTime = SystemClock.elapsedRealtime();
+				final User user = api.createUser(mUsername.getText().toString(),
+						mEmail.getText().toString(),
+						null, imagePath);
 
-  private void doRegister() {
-    showProgressDialog();
-    new RegistrationTask().execute();
-  }
+				// Make sure we're showing the progress bar for at least
+				// 2s; the flashing is jarring / hard to read otherwise.
+				final long duration = SystemClock.elapsedRealtime() - startTime;
+				if (duration < 2000) {
+					SystemClock.sleep(2000 - duration);
+				}
 
-  private void showProgressDialog() {
-    hideDialog();
-    mDialog = new SetupProgressDialogFragment(new SetupProgressDialogFragment.Listener() {
-      @Override
-      public void onCancel(DialogInterface dialog) {
-        //mHandler.sendEmptyMessage(MESSAGE_VALIDATION_ABORTED);
-      }
-    });
-    //mDialog.getDialog().setTitle("Registering");
-    mDialog.show(getFragmentManager(), "dialog");
-  }
+				return user;
+			} catch (BackendException e) {
+				// TODO: Highlight field errors.
+				Log.w(TAG, "Registration failed: " + e.toString());
+			}
+			return null;
+		}
 
-  private void hideDialog() {
-    if (mDialog != null) {
-      mDialog.dismiss();
-      mDialog = null;
-    }
-    mSubmitButton.setEnabled(true);
-  }
+		@Override
+		protected void onPostExecute(User result) {
+			hideDialog();
+			if (result != null) {
+				Log.d(TAG, "Registration succeeded!");
+				final Intent data = new Intent();
+				data.putExtra(KegtabCommon.ACTIVITY_CREATE_DRINKER_RESULT_EXTRA_USERNAME,
+						result.getUsername());
+				setResult(RESULT_OK, data);
 
-  private static boolean isValidEmail(String target) {
-    if (Strings.isNullOrEmpty(target)) {
-      return false;
-    }
-    return Patterns.EMAIL_ADDRESS.matcher(target).matches();
-  }
+				finish();
+			}
+		}
+	}
 
 }

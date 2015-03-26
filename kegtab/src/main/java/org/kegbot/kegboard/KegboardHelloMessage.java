@@ -25,66 +25,66 @@ import com.google.common.base.Strings;
  */
 public class KegboardHelloMessage extends KegboardMessage {
 
-  public static final int MESSAGE_TYPE = 0x01;
+	public static final int MESSAGE_TYPE = 0x01;
 
-  private static final int TAG_FIRMWARE_VERSION = 0x01;
-  private static final int TAG_PROTOCOL_VERSION = 0x02;
-  private static final int TAG_SERIAL_NUMBER = 0x03;
-  private static final int TAG_UPTIME_MILLIS = 0x04;
-  private static final int TAG_UPTIME_DAYS = 0x05;
+	private static final int TAG_FIRMWARE_VERSION = 0x01;
+	private static final int TAG_PROTOCOL_VERSION = 0x02;
+	private static final int TAG_SERIAL_NUMBER = 0x03;
+	private static final int TAG_UPTIME_MILLIS = 0x04;
+	private static final int TAG_UPTIME_DAYS = 0x05;
 
-  public KegboardHelloMessage(byte[] wholeMessage) throws KegboardMessageException {
-    super(wholeMessage);
-  }
+	public KegboardHelloMessage(byte[] wholeMessage) throws KegboardMessageException {
+		super(wholeMessage);
+	}
 
-  @Override
-  public short getMessageType() {
-    return MESSAGE_TYPE;
-  }
+	@Override
+	public short getMessageType() {
+		return MESSAGE_TYPE;
+	}
 
-  @Override
-  public String getStringExtra() {
-    return new StringBuilder()
-        .append("firmware_version=")
-        .append(getFirmwareVersion())
-        .append(" protocol_version=")
-        .append(getProtocolVersion())
-        .append(" serial_number=")
-        .append(getSerialNumber())
-        .append(" uptime_days=")
-        .append(getUptimeDays())
-        .append(" uptime_millis=")
-        .append(getUptimeMillis())
-        .toString();
-  }
+	@Override
+	public String getStringExtra() {
+		return new StringBuilder()
+				.append("firmware_version=")
+				.append(getFirmwareVersion())
+				.append(" protocol_version=")
+				.append(getProtocolVersion())
+				.append(" serial_number=")
+				.append(getSerialNumber())
+				.append(" uptime_days=")
+				.append(getUptimeDays())
+				.append(" uptime_millis=")
+				.append(getUptimeMillis())
+				.toString();
+	}
 
 
-  public int getFirmwareVersion() {
-    return readTagAsShort(TAG_FIRMWARE_VERSION);
-  }
+	public int getFirmwareVersion() {
+		return readTagAsShort(TAG_FIRMWARE_VERSION);
+	}
 
-  public int getProtocolVersion() {
-    return readTagAsShort(TAG_PROTOCOL_VERSION);
-  }
+	public int getProtocolVersion() {
+		return readTagAsShort(TAG_PROTOCOL_VERSION);
+	}
 
-  public long getUptimeDays() {
-    final Long value = readTagAsLong(TAG_UPTIME_DAYS);
-    if (value != null) {
-      return value.longValue();
-    }
-    return -1;
-  }
+	public long getUptimeDays() {
+		final Long value = readTagAsLong(TAG_UPTIME_DAYS);
+		if (value != null) {
+			return value.longValue();
+		}
+		return -1;
+	}
 
-  public long getUptimeMillis() {
-    final Long value = readTagAsLong(TAG_UPTIME_MILLIS);
-    if (value != null) {
-      return value.longValue();
-    }
-    return -1;
-  }
+	public long getUptimeMillis() {
+		final Long value = readTagAsLong(TAG_UPTIME_MILLIS);
+		if (value != null) {
+			return value.longValue();
+		}
+		return -1;
+	}
 
-  public String getSerialNumber() {
-    return Strings.nullToEmpty(readTagAsString(TAG_SERIAL_NUMBER));
-  }
+	public String getSerialNumber() {
+		return Strings.nullToEmpty(readTagAsString(TAG_SERIAL_NUMBER));
+	}
 
 }

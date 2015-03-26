@@ -20,7 +20,6 @@
 package org.kegbot.app.setup;
 
 import android.app.Fragment;
-
 import org.kegbot.app.R;
 
 /**
@@ -28,21 +27,21 @@ import org.kegbot.app.R;
  */
 public abstract class SetupStep {
 
-  protected final SetupActivity.SetupState mState;
+	protected final SetupActivity.SetupState mState;
 
-  public SetupStep(SetupActivity.SetupState state) {
-    mState = state;
-  }
+	public SetupStep(SetupActivity.SetupState state) {
+		mState = state;
+	}
 
-  public abstract Fragment getContentFragment();
+	public abstract Fragment getContentFragment();
 
-  public abstract Fragment getControlsFragment();
+	public abstract Fragment getControlsFragment();
 
-  public void onDisplay() {
-    mState.setNextButtonEnabled(true);
-    mState.setNextButtonText(R.string.setup_button_next);
-  }
+	public void onDisplay() {
+		mState.setNextButtonEnabled(true);
+		mState.setNextButtonText(R.string.setup_button_next);
+	}
 
-  public abstract SetupStep advance() throws SetupValidationException;
+	public abstract SetupStep advance() throws SetupValidationException;
 
 }

@@ -23,19 +23,19 @@ package org.kegbot.kegboard;
  */
 public class KegboardPingCommand extends KegboardMessage {
 
-  private static final short MESSAGE_TYPE = 0x81;
+	private static final short MESSAGE_TYPE = 0x81;
 
-  public KegboardPingCommand() {
+	public KegboardPingCommand() {
 
-  }
+	}
 
-  public KegboardPingCommand(byte[] wholeMessage) throws KegboardMessageException {
-    super(wholeMessage);
-  }
+	public KegboardPingCommand(byte[] wholeMessage) throws KegboardMessageException {
+		super(wholeMessage);
+	}
 
-  @Override
-  public short getMessageType() {
-    return MESSAGE_TYPE;
-  }
+	@Override
+	public short getMessageType() {
+		return MESSAGE_TYPE;
+	}
 
 }

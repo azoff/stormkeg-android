@@ -29,14 +29,14 @@ import java.util.List;
  */
 public class FlowToggleListUpdateEvent implements Event {
 
-  private final List<Models.FlowToggle> mToggles;
+	private final List<Models.FlowToggle> mToggles;
 
-  public FlowToggleListUpdateEvent(List<Models.FlowToggle> toggles) {
-    mToggles = toggles;
-  }
+	public FlowToggleListUpdateEvent(List<Models.FlowToggle> toggles) {
+		mToggles = toggles;
+	}
 
-  public List<Models.FlowToggle> getEvents() {
-    return mToggles;
-  }
+	public List<Models.FlowToggle> getEvents() {
+		return mToggles;
+	}
 
 }

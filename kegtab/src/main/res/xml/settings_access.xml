@@ -20,28 +20,28 @@
   -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="Registration">
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="config:ALLOW_REGISTRATION"
-            android:summaryOff="New users cannot register in the app"
-            android:summaryOn="New users can register in the app"
-            android:title="Allow New User Registration">
-        </CheckBoxPreference>
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="config:ALLOW_MANUAL_LOGIN"
-            android:summaryOff="Drinkers must use an RFID or other token to log in"
-            android:summaryOn="Drinkers can log in by tapping on the main screen"
-            android:title="Allow On-Screen Login">
-        </CheckBoxPreference>
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="config:CACHE_CREDENTIALS"
-            android:summaryOff="Authentication tokens will always be checked against the server"
-            android:summaryOn="Authentication tokens will be locally cached"
-            android:title="Cache Credentials">
-        </CheckBoxPreference>
-    </PreferenceCategory>
+	<PreferenceCategory android:title="Registration">
+		<CheckBoxPreference
+				android:defaultValue="true"
+				android:key="config:ALLOW_REGISTRATION"
+				android:summaryOff="New users cannot register in the app"
+				android:summaryOn="New users can register in the app"
+				android:title="Allow New User Registration">
+		</CheckBoxPreference>
+		<CheckBoxPreference
+				android:defaultValue="true"
+				android:key="config:ALLOW_MANUAL_LOGIN"
+				android:summaryOff="Drinkers must use an RFID or other token to log in"
+				android:summaryOn="Drinkers can log in by tapping on the main screen"
+				android:title="Allow On-Screen Login">
+		</CheckBoxPreference>
+		<CheckBoxPreference
+				android:defaultValue="true"
+				android:key="config:CACHE_CREDENTIALS"
+				android:summaryOff="Authentication tokens will always be checked against the server"
+				android:summaryOn="Authentication tokens will be locally cached"
+				android:title="Cache Credentials">
+		</CheckBoxPreference>
+	</PreferenceCategory>
 
 </PreferenceScreen>

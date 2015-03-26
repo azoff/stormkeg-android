@@ -19,23 +19,25 @@
 
 package org.kegbot.api;
 
-/** Thrown when the server does not return proper JSON. */
+/**
+ * Thrown when the server does not return proper JSON.
+ */
 public class KegbotApiMalformedResponseException extends KegbotApiException {
 
-  public KegbotApiMalformedResponseException() {
-    super();
-  }
+	public KegbotApiMalformedResponseException() {
+		super();
+	}
 
-  public KegbotApiMalformedResponseException(String detailMessage, Throwable throwable) {
-    super(detailMessage, throwable);
-  }
+	public KegbotApiMalformedResponseException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
 
-  public KegbotApiMalformedResponseException(String detailMessage) {
-    super(detailMessage);
-  }
+	public KegbotApiMalformedResponseException(String detailMessage) {
+		super(detailMessage);
+	}
 
-  public KegbotApiMalformedResponseException(Throwable throwable) {
-    super(throwable);
-  }
+	public KegbotApiMalformedResponseException(Throwable throwable) {
+		super(throwable);
+	}
 
 }

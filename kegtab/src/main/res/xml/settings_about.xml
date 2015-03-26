@@ -19,20 +19,20 @@
   -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference
-        android:key="version"
-        android:summary=""
-        android:title="Version">
-    </Preference>
-    <Preference
-        android:key="third_party"
-        android:title="Third Party Software"
-        android:summary="License agreements for included open source software.">
-    </Preference>
-    <Preference
-        android:key="copyright"
-        android:summary="Copyright Bevbot LLC 2014."
-        android:title="Legal">
-    </Preference>
+	<Preference
+			android:key="version"
+			android:summary=""
+			android:title="Version">
+	</Preference>
+	<Preference
+			android:key="third_party"
+			android:title="Third Party Software"
+			android:summary="License agreements for included open source software.">
+	</Preference>
+	<Preference
+			android:key="copyright"
+			android:summary="Copyright Bevbot LLC 2014."
+			android:title="Legal">
+	</Preference>
 
 </PreferenceScreen>

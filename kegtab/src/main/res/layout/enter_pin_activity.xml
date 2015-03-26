@@ -25,32 +25,32 @@
               android:orientation="vertical"
               android:paddingTop="64dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Please enter the Manager Pin to continue."
-        android:textSize="32dip"
-        android:textStyle="bold"/>
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Please enter the Manager Pin to continue."
+			android:textSize="32dip"
+			android:textStyle="bold"/>
 
-    <TextView
-        android:id="@+id/managerPinError"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/manager_pin_error"
-        android:textSize="24dip"
-        android:visibility="invisible"
-        android:layout_marginBottom="32dp"/>
+	<TextView
+			android:id="@+id/managerPinError"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/manager_pin_error"
+			android:textSize="24dip"
+			android:visibility="invisible"
+			android:layout_marginBottom="32dp"/>
 
-    <EditText
-        android:id="@+id/managerPin"
-        android:layout_width="256dip"
-        android:layout_height="wrap_content"
-        android:inputType="numberPassword"/>
+	<EditText
+			android:id="@+id/managerPin"
+			android:layout_width="256dip"
+			android:layout_height="wrap_content"
+			android:inputType="numberPassword"/>
 
-    <Button
-        android:id="@+id/submitButton"
-        android:layout_width="256dip"
-        android:layout_height="wrap_content"
-        android:text="Submit"/>
+	<Button
+			android:id="@+id/submitButton"
+			android:layout_width="256dip"
+			android:layout_height="wrap_content"
+			android:text="Submit"/>
 
 </LinearLayout>

@@ -24,36 +24,35 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import org.kegbot.core.KegbotCore;
 
 public class SystemStatusFragment extends Fragment {
 
-  private KegbotCore mCore;
-  private View mView;
+	private KegbotCore mCore;
+	private View mView;
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    mCore = KegbotCore.getInstance(getActivity());
-  }
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		mCore = KegbotCore.getInstance(getActivity());
+	}
 
-  @Override
-  public void onStart() {
-    super.onStart();
-    mCore.getBus().register(this);
-  }
+	@Override
+	public void onStart() {
+		super.onStart();
+		mCore.getBus().register(this);
+	}
 
-  @Override
-  public void onStop() {
-    mCore.getBus().unregister(this);
-    super.onStop();
-  }
+	@Override
+	public void onStop() {
+		mCore.getBus().unregister(this);
+		super.onStop();
+	}
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    mView = inflater.inflate(R.layout.system_status_fragment_layout, container, false);
-    return mView;
-  }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mView = inflater.inflate(R.layout.system_status_fragment_layout, container, false);
+		return mView;
+	}
 
 }

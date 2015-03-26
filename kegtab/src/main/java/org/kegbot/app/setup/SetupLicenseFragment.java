@@ -24,7 +24,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-
 import org.kegbot.app.R;
 import org.kegbot.app.service.CheckinService;
 
@@ -35,29 +34,29 @@ import org.kegbot.app.service.CheckinService;
  */
 public class SetupLicenseFragment extends SetupFragment {
 
-  private View mView;
+	private View mView;
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    mView = inflater.inflate(R.layout.setup_license_fragment, null);
-    return mView;
-  }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mView = inflater.inflate(R.layout.setup_license_fragment, null);
+		return mView;
+	}
 
-  @Override
-  public String validate() {
-    CheckBox licenseBox = (CheckBox) mView.findViewById(R.id.agreeLicense);
-    CheckBox privacyBox = (CheckBox) mView.findViewById(R.id.agreePrivacy);
+	@Override
+	public String validate() {
+		CheckBox licenseBox = (CheckBox) mView.findViewById(R.id.agreeLicense);
+		CheckBox privacyBox = (CheckBox) mView.findViewById(R.id.agreePrivacy);
 
-    if (!licenseBox.isChecked() || !privacyBox.isChecked()) {
-      return getActivity().getString(R.string.setup_license_error);
-    }
+		if (!licenseBox.isChecked() || !privacyBox.isChecked()) {
+			return getActivity().getString(R.string.setup_license_error);
+		}
 
-    Context context = getActivity();
-    if (context != null) {
-      CheckinService.requestImmediateCheckin(context);
-    }
+		Context context = getActivity();
+		if (context != null) {
+			CheckinService.requestImmediateCheckin(context);
+		}
 
-    return "";
-  }
+		return "";
+	}
 
 }

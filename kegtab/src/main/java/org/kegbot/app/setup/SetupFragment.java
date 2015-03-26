@@ -19,7 +19,6 @@
 package org.kegbot.app.setup;
 
 import android.app.Fragment;
-
 import org.apache.http.conn.HttpHostConnectException;
 import org.kegbot.api.KegbotApiServerError;
 import org.kegbot.api.NotAuthorizedException;
@@ -31,28 +30,28 @@ import java.net.SocketException;
  */
 public abstract class SetupFragment extends Fragment {
 
-  protected abstract String validate();
+	protected static String toHumanError(Exception e) {
+		StringBuilder builder = new StringBuilder();
+		if (e.getCause() instanceof HttpHostConnectException) {
+			builder.append("Could not connect to remote host.");
+		} else if (e instanceof NotAuthorizedException) {
+			builder.append("Username or password was incorrect.");
+		} else if (e instanceof KegbotApiServerError) {
+			builder.append("Bad response from server (");
+			builder.append(e.toString());
+			builder.append(")");
+		} else if (e instanceof SocketException || e.getCause() instanceof SocketException) {
+			builder.append("Server is down or unreachable.");
+		} else {
+			builder.append(e.getMessage());
+		}
+		return builder.toString();
+	}
 
-  protected void onValidationFailed() {
+	protected abstract String validate();
 
-  }
+	protected void onValidationFailed() {
 
-  protected static String toHumanError(Exception e) {
-    StringBuilder builder = new StringBuilder();
-    if (e.getCause() instanceof HttpHostConnectException) {
-      builder.append("Could not connect to remote host.");
-    } else if (e instanceof NotAuthorizedException) {
-      builder.append("Username or password was incorrect.");
-    } else if (e instanceof KegbotApiServerError) {
-      builder.append("Bad response from server (");
-      builder.append(e.toString());
-      builder.append(")");
-    } else if (e instanceof SocketException || e.getCause() instanceof SocketException) {
-      builder.append("Server is down or unreachable.");
-    } else {
-      builder.append(e.getMessage());
-    }
-    return builder.toString();
-  }
+	}
 
 }

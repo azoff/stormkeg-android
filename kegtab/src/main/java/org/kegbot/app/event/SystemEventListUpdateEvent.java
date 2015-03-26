@@ -29,14 +29,14 @@ import java.util.List;
  */
 public class SystemEventListUpdateEvent implements Event {
 
-  private final List<SystemEvent> mEvents;
+	private final List<SystemEvent> mEvents;
 
-  public SystemEventListUpdateEvent(List<SystemEvent> events) {
-    mEvents = events;
-  }
+	public SystemEventListUpdateEvent(List<SystemEvent> events) {
+		mEvents = events;
+	}
 
-  public List<SystemEvent> getEvents() {
-    return mEvents;
-  }
+	public List<SystemEvent> getEvents() {
+		return mEvents;
+	}
 
 }

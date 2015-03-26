@@ -22,60 +22,60 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/tapStatsBadges"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:gravity="center"
-        android:orientation="horizontal">
+	<LinearLayout
+			android:id="@+id/tapStatsBadges"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:gravity="center"
+			android:orientation="horizontal">
 
-        <org.kegbot.app.view.BadgeView
-            android:id="@+id/tapStatsBadge1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dip"
-            android:background="@color/black20pct">
-        </org.kegbot.app.view.BadgeView>
+		<org.kegbot.app.view.BadgeView
+				android:id="@+id/tapStatsBadge1"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_margin="10dip"
+				android:background="@color/black20pct">
+		</org.kegbot.app.view.BadgeView>
 
-        <org.kegbot.app.view.BadgeView
-            android:id="@+id/tapStatsBadge2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dip"
-            android:background="@color/black20pct">
-        </org.kegbot.app.view.BadgeView>
+		<org.kegbot.app.view.BadgeView
+				android:id="@+id/tapStatsBadge2"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_margin="10dip"
+				android:background="@color/black20pct">
+		</org.kegbot.app.view.BadgeView>
 
-        <org.kegbot.app.view.BadgeView
-            android:id="@+id/tapStatsBadge3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dip"
-            android:background="@color/black20pct">
-        </org.kegbot.app.view.BadgeView>
-    </LinearLayout>
+		<org.kegbot.app.view.BadgeView
+				android:id="@+id/tapStatsBadge3"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_margin="10dip"
+				android:background="@color/black20pct">
+		</org.kegbot.app.view.BadgeView>
+	</LinearLayout>
 
-    <ImageView
-        android:id="@+id/tapImage"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@id/tapStatsBadges"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="16dip"/>
+	<ImageView
+			android:id="@+id/tapImage"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:layout_below="@id/tapStatsBadges"
+			android:layout_centerHorizontal="true"
+			android:layout_margin="16dip"/>
 
-    <TextView
-        android:id="@+id/tapNotes"
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@+id/tapStatsBadges"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dip"
-        android:textColor="#888"
-        android:textAlignment="center"
-        android:textSize="24dp"
-        android:padding="16dp"
-        android:layout_margin="16dp"
-        android:textStyle="italic"/>
+	<TextView
+			android:id="@+id/tapNotes"
+			android:layout_width="match_parent"
+			android:layout_height="fill_parent"
+			android:layout_below="@+id/tapStatsBadges"
+			android:layout_alignParentBottom="true"
+			android:layout_centerHorizontal="true"
+			android:layout_marginTop="5dip"
+			android:textColor="#888"
+			android:textAlignment="center"
+			android:textSize="24dp"
+			android:padding="16dp"
+			android:layout_margin="16dp"
+			android:textStyle="italic"/>
 
 </RelativeLayout>

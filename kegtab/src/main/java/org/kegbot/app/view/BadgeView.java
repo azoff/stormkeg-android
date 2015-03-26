@@ -24,7 +24,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import org.kegbot.app.R;
 
 /**
@@ -34,39 +33,39 @@ import org.kegbot.app.R;
  */
 public class BadgeView extends LinearLayout {
 
-  private TextView mBadgeValue;
-  private TextView mBadgeCaption;
+	private TextView mBadgeValue;
+	private TextView mBadgeCaption;
 
-  public BadgeView(Context context, AttributeSet attrs, int defStyle) {
-    super(context, attrs, defStyle);
-    init(context);
-  }
+	public BadgeView(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
+		init(context);
+	}
 
-  public BadgeView(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    init(context);
-  }
+	public BadgeView(Context context, AttributeSet attrs) {
+		super(context, attrs);
+		init(context);
+	}
 
-  public BadgeView(Context context) {
-    super(context);
-    init(context);
-  }
+	public BadgeView(Context context) {
+		super(context);
+		init(context);
+	}
 
-  private void init(Context context) {
-    final LayoutInflater layoutInflater = (LayoutInflater) context
-        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    layoutInflater.inflate(R.layout.numeric_badge_view_layout, this, true);
+	private void init(Context context) {
+		final LayoutInflater layoutInflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		layoutInflater.inflate(R.layout.numeric_badge_view_layout, this, true);
 
-    mBadgeValue = (TextView) findViewById(R.id.badgeValue);
-    mBadgeCaption = (TextView) findViewById(R.id.badgeCaption);
-  }
+		mBadgeValue = (TextView) findViewById(R.id.badgeValue);
+		mBadgeCaption = (TextView) findViewById(R.id.badgeCaption);
+	}
 
-  public void setBadgeValue(String value) {
-    mBadgeValue.setText(value);
-  }
+	public void setBadgeValue(String value) {
+		mBadgeValue.setText(value);
+	}
 
-  public void setBadgeCaption(String caption) {
-    mBadgeCaption.setText(caption);
-  }
+	public void setBadgeCaption(String caption) {
+		mBadgeCaption.setText(caption);
+	}
 
 }

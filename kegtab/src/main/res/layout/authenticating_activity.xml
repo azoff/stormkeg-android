@@ -32,69 +32,69 @@
               android:paddingRight="64dip"
               android:paddingTop="32dip">
 
-    <TextView
-        android:id="@+id/authenticatingBeginTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dip"
-        android:text="@string/authenticating_begin_title"
-        android:textColor="@android:color/holo_blue_light"
-        android:textSize="48dip"
-        android:textStyle="bold"
-        android:visibility="invisible"/>
+	<TextView
+			android:id="@+id/authenticatingBeginTitle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="12dip"
+			android:text="@string/authenticating_begin_title"
+			android:textColor="@android:color/holo_blue_light"
+			android:textSize="48dip"
+			android:textStyle="bold"
+			android:visibility="invisible"/>
 
-    <TextView
-        android:id="@+id/authenticatingFailTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dip"
-        android:text="@string/authenticating_fail_title"
-        android:textColor="@color/darkRed"
-        android:textSize="48dip"
-        android:textStyle="bold"
-        android:visibility="invisible"/>
+	<TextView
+			android:id="@+id/authenticatingFailTitle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="12dip"
+			android:text="@string/authenticating_fail_title"
+			android:textColor="@color/darkRed"
+			android:textSize="48dip"
+			android:textStyle="bold"
+			android:visibility="invisible"/>
 
-    <TextView
-        android:id="@+id/authenticatingMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dip"
-        android:text=""
-        android:textColor="@android:color/white"
-        android:textSize="24dip"
-        android:visibility="invisible"/>
+	<TextView
+			android:id="@+id/authenticatingMessage"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="24dip"
+			android:text=""
+			android:textColor="@android:color/white"
+			android:textSize="24dip"
+			android:visibility="invisible"/>
 
-    <LinearLayout
-        android:id="@+id/buttonGroup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dip"
-        android:orientation="vertical"
-        android:visibility="gone">
+	<LinearLayout
+			android:id="@+id/buttonGroup"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_margin="16dip"
+			android:orientation="vertical"
+			android:visibility="gone">
 
-        <Button
-            android:id="@+id/assignButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dip"
-            android:text="Assign to User"
-            android:textSize="36dip"
-            android:textStyle="bold"/>
+		<Button
+				android:id="@+id/assignButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:padding="16dip"
+				android:text="Assign to User"
+				android:textSize="36dip"
+				android:textStyle="bold"/>
 
-        <Button
-            android:id="@+id/cancelButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dip"
-            android:text="Cancel"
-            android:textSize="36dip"
-            android:textStyle="bold"/>
-    </LinearLayout>
+		<Button
+				android:id="@+id/cancelButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:padding="16dip"
+				android:text="Cancel"
+				android:textSize="36dip"
+				android:textStyle="bold"/>
+	</LinearLayout>
 
-    <ProgressBar
-        android:id="@+id/authenticatingProgress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+	<ProgressBar
+			android:id="@+id/authenticatingProgress"
+			style="?android:attr/progressBarStyleLarge"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"/>
 
 </LinearLayout>

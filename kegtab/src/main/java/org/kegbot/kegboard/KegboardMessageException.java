@@ -23,19 +23,19 @@ package org.kegbot.kegboard;
  */
 public class KegboardMessageException extends Exception {
 
-  public KegboardMessageException() {
-  }
+	public KegboardMessageException() {
+	}
 
-  public KegboardMessageException(String detailMessage) {
-    super(detailMessage);
-  }
+	public KegboardMessageException(String detailMessage) {
+		super(detailMessage);
+	}
 
-  public KegboardMessageException(Throwable throwable) {
-    super(throwable);
-  }
+	public KegboardMessageException(Throwable throwable) {
+		super(throwable);
+	}
 
-  public KegboardMessageException(String detailMessage, Throwable throwable) {
-    super(detailMessage, throwable);
-  }
+	public KegboardMessageException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
 
 }

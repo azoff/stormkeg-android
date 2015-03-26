@@ -27,43 +27,43 @@ import org.kegbot.backend.BackendException;
  */
 public class KegbotApiException extends BackendException {
 
-  private final JsonNode mErrors;
+	private final JsonNode mErrors;
 
-  public KegbotApiException() {
-    mErrors = null;
-  }
+	public KegbotApiException() {
+		mErrors = null;
+	}
 
-  public KegbotApiException(JsonNode errors) {
-    mErrors = errors;
-  }
+	public KegbotApiException(JsonNode errors) {
+		mErrors = errors;
+	}
 
-  /**
-   * @param detailMessage
-   */
-  public KegbotApiException(String detailMessage) {
-    super(detailMessage);
-    mErrors = null;
-  }
+	/**
+	 * @param detailMessage
+	 */
+	public KegbotApiException(String detailMessage) {
+		super(detailMessage);
+		mErrors = null;
+	}
 
-  /**
-   * @param throwable
-   */
-  public KegbotApiException(Throwable throwable) {
-    super(throwable);
-    mErrors = null;
-  }
+	/**
+	 * @param throwable
+	 */
+	public KegbotApiException(Throwable throwable) {
+		super(throwable);
+		mErrors = null;
+	}
 
-  /**
-   * @param detailMessage
-   * @param throwable
-   */
-  public KegbotApiException(String detailMessage, Throwable throwable) {
-    super(detailMessage, throwable);
-    mErrors = null;
-  }
+	/**
+	 * @param detailMessage
+	 * @param throwable
+	 */
+	public KegbotApiException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+		mErrors = null;
+	}
 
-  public JsonNode getErrors() {
-    return mErrors;
-  }
+	public JsonNode getErrors() {
+		return mErrors;
+	}
 
 }

@@ -19,7 +19,6 @@
 package org.kegbot.core;
 
 import android.util.Log;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -27,19 +26,13 @@ import com.google.common.collect.Sets;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
-
 import org.kegbot.app.config.ConfigurationStore;
 import org.kegbot.app.event.TapsChangedEvent;
 import org.kegbot.app.event.VisibleTapsChangedEvent;
 import org.kegbot.app.util.IndentingPrintWriter;
 import org.kegbot.proto.Models.KegTap;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Tap manager.
@@ -48,229 +41,233 @@ import java.util.Set;
  */
 public class TapManager extends Manager {
 
-  private static final String TAG = TapManager.class.getSimpleName();
+	@VisibleForTesting
+	protected static final String KEY_HIDDEN_TAP_IDS = "hidden_tap_ids";
+	private static final String TAG = TapManager.class.getSimpleName();
+	/**
+	 * Sorts taps by (sort_order, id).
+	 */
+	private static final Comparator<KegTap> TAP_COMPARATOR = new Comparator<KegTap>() {
+		@Override
+		public int compare(KegTap kegTap, KegTap kegTap2) {
+			if (kegTap == kegTap2) {
+				return 0;
+			} else if (kegTap == null) {
+				return -1;
+			} else if (kegTap2 == null) {
+				return 1;
+			}
+			int ret = kegTap.getSortOrder() - kegTap2.getSortOrder();
+			if (ret == 0) {
+				ret = kegTap.getId() - kegTap2.getId();
+			}
+			return ret;
+		}
+	};
 
-  @VisibleForTesting
-  protected static final String KEY_HIDDEN_TAP_IDS = "hidden_tap_ids";
+	private final Map<Integer, KegTap> mTaps = Maps.newLinkedHashMap();
 
-  /** Sorts taps by (sort_order, id). */
-  private static final Comparator<KegTap> TAP_COMPARATOR = new Comparator<KegTap>() {
-    @Override
-    public int compare(KegTap kegTap, KegTap kegTap2) {
-      if (kegTap == kegTap2) {
-        return 0;
-      } else if (kegTap == null) {
-        return -1;
-      } else if (kegTap2 == null) {
-        return 1;
-      }
-      int ret = kegTap.getSortOrder() - kegTap2.getSortOrder();
-      if (ret == 0) {
-        ret = kegTap.getId() - kegTap2.getId();
-      }
-      return ret;
-    }
-  };
+	private ConfigurationStore mLocalConfig;
 
-  private final Map<Integer, KegTap> mTaps = Maps.newLinkedHashMap();
+	public TapManager(Bus bus, ConfigurationStore configStore) {
+		super(bus);
+		mLocalConfig = configStore;
+	}
 
-  private ConfigurationStore mLocalConfig;
+	@Override
+	protected synchronized void start() {
+		getBus().register(this);
+	}
 
-  public TapManager(Bus bus, ConfigurationStore configStore) {
-    super(bus);
-    mLocalConfig = configStore;
-  }
+	@Override
+	protected synchronized void stop() {
+		getBus().unregister(this);
+		mTaps.clear();
+		super.stop();
+	}
 
-  @Override
-  protected synchronized void start() {
-    getBus().register(this);
-  }
+	/**
+	 * Adds a Tap to the system.
+	 *
+	 * @param newTap the new tap object
+	 * @return {@code true} if an existing tap was replaced, {@code false} otherwise.
+	 */
+	synchronized boolean addTap(final KegTap newTap) {
+		Log.i(TAG, "Adding/updating tap " + newTap.getId());
+		final Integer tapId = Integer.valueOf(newTap.getId());
+		return mTaps.put(Integer.valueOf(newTap.getId()), newTap) != null;
+	}
 
-  @Override
-  protected synchronized void stop() {
-    getBus().unregister(this);
-    mTaps.clear();
-    super.stop();
-  }
+	/**
+	 * Removes a tap from the system.
+	 *
+	 * @param tap the tap to remove
+	 * @return {@code true} if an existing tap was removed, {@code false} otherwise.
+	 */
+	synchronized boolean removeTap(final KegTap tap) {
+		Log.i(TAG, "Removing tap " + tap.getId());
+		setTapVisibility(tap, true);  // clear invisibility
+		return mTaps.remove(Integer.valueOf(tap.getId())) != null;
+	}
 
-  /**
-   * Adds a Tap to the system.
-   *
-   * @param newTap the new tap object
-   * @return {@code true} if an existing tap was replaced, {@code false} otherwise.
-   */
-  synchronized boolean addTap(final KegTap newTap) {
-    Log.i(TAG, "Adding/updating tap " + newTap.getId());
-    final Integer tapId = Integer.valueOf(newTap.getId());
-    return mTaps.put(Integer.valueOf(newTap.getId()), newTap) != null;
-  }
+	/**
+	 * Updates the set of installed taps to match {@code taps}.
+	 *
+	 * @param taps
+	 */
+	public synchronized void updateTaps(final Collection<KegTap> taps) {
+		boolean updated = false;
+		final Set<Integer> tapsToRemove = Sets.newLinkedHashSet(mTaps.keySet());
 
-  /**
-   * Removes a tap from the system.
-   *
-   * @param tap the tap to remove
-   * @return {@code true} if an existing tap was removed, {@code false} otherwise.
-   */
-  synchronized boolean removeTap(final KegTap tap) {
-    Log.i(TAG, "Removing tap " + tap.getId());
-    setTapVisibility(tap, true);  // clear invisibility
-    return mTaps.remove(Integer.valueOf(tap.getId())) != null;
-  }
+		for (final KegTap tap : taps) {
+			final Integer key = Integer.valueOf(tap.getId());
+			tapsToRemove.remove(key);
+			if (mTaps.containsKey(key) && getTap(key.intValue()).equals(tap)) {
+				continue;
+			}
+			updated = true;
+			addTap(tap);
+		}
 
-  /**
-   * Updates the set of installed taps to match {@code taps}.
-   *
-   * @param taps
-   */
-  public synchronized void updateTaps(final Collection<KegTap> taps) {
-    boolean updated = false;
-    final Set<Integer> tapsToRemove = Sets.newLinkedHashSet(mTaps.keySet());
+		for (final Integer tapId : tapsToRemove) {
+			updated = true;
+			removeTap(mTaps.get(tapId));
+		}
 
-    for (final KegTap tap : taps) {
-      final Integer key = Integer.valueOf(tap.getId());
-      tapsToRemove.remove(key);
-      if (mTaps.containsKey(key) && getTap(key.intValue()).equals(tap)) {
-        continue;
-      }
-      updated = true;
-      addTap(tap);
-    }
+		if (updated) {
+			postUpdate();
+		}
+	}
 
-    for (final Integer tapId : tapsToRemove) {
-      updated = true;
-      removeTap(mTaps.get(tapId));
-    }
+	private void postUpdate() {
+		postOnMainThread(produceTapsEvent());
+		postOnMainThread(productVisibleTapsEvent());
+	}
 
-    if (updated) {
-      postUpdate();
-    }
-  }
+	@Produce
+	public TapsChangedEvent produceTapsEvent() {
+		return new TapsChangedEvent(Lists.newArrayList(getTaps()));
+	}
 
-  private void postUpdate() {
-    postOnMainThread(produceTapsEvent());
-    postOnMainThread(productVisibleTapsEvent());
-  }
+	@Produce
+	public VisibleTapsChangedEvent productVisibleTapsEvent() {
+		return new VisibleTapsChangedEvent(Lists.newArrayList(getVisibleTaps()));
+	}
 
-  @Produce
-  public TapsChangedEvent produceTapsEvent() {
-    return new TapsChangedEvent(Lists.newArrayList(getTaps()));
-  }
+	public synchronized KegTap getTap(int tapId) {
+		return mTaps.get(Integer.valueOf(tapId));
+	}
 
-  @Produce
-  public VisibleTapsChangedEvent productVisibleTapsEvent() {
-    return new VisibleTapsChangedEvent(Lists.newArrayList(getVisibleTaps()));
-  }
+	@Deprecated
+	public synchronized KegTap getTapForMeterName(final String meterName) {
+		for (final KegTap tap : mTaps.values()) {
+			if (!tap.hasMeter()) {
+				continue;
+			}
+			if (meterName.equals(tap.getMeter().getName())) {
+				return tap;
+			}
+		}
+		return null;
+	}
 
-  public synchronized KegTap getTap(int tapId) {
-    return mTaps.get(Integer.valueOf(tapId));
-  }
+	/**
+	 * Returns all taps known to the backend, in sorted order.
+	 */
+	public synchronized List<KegTap> getTaps() {
+		final List<KegTap> result = Lists.newArrayList(mTaps.values());
+		Collections.sort(result, TAP_COMPARATOR);
+		return result;
+	}
 
-  @Deprecated
-  public synchronized KegTap getTapForMeterName(final String meterName) {
-    for (final KegTap tap : mTaps.values()) {
-      if (!tap.hasMeter()) {
-        continue;
-      }
-      if (meterName.equals(tap.getMeter().getName())) {
-        return tap;
-      }
-    }
-    return null;
-  }
+	/**
+	 * Returns all locally-visible taps, in sorted order.
+	 */
+	public synchronized List<KegTap> getVisibleTaps() {
+		final Set<String> hiddenIds = mLocalConfig.getStringSet(KEY_HIDDEN_TAP_IDS,
+				Collections.<String>emptySet());
+		final List<KegTap> results = Lists.newArrayList();
 
-  /** Returns all taps known to the backend, in sorted order. */
-  public synchronized List<KegTap> getTaps() {
-    final List<KegTap> result = Lists.newArrayList(mTaps.values());
-    Collections.sort(result, TAP_COMPARATOR);
-    return result;
-  }
+		for (final KegTap tap : mTaps.values()) {
+			final String tapId = String.valueOf(tap.getId());
+			if (!hiddenIds.contains(tapId)) {
+				results.add(tap);
+			}
+		}
 
-  /** Returns all locally-visible taps, in sorted order. */
-  public synchronized List<KegTap> getVisibleTaps() {
-    final Set<String> hiddenIds = mLocalConfig.getStringSet(KEY_HIDDEN_TAP_IDS,
-        Collections.<String>emptySet());
-    final List<KegTap> results = Lists.newArrayList();
+		Collections.sort(results, TAP_COMPARATOR);
+		return results;
+	}
 
-    for (final KegTap tap : mTaps.values()) {
-      final String tapId = String.valueOf(tap.getId());
-      if (!hiddenIds.contains(tapId)) {
-        results.add(tap);
-      }
-    }
+	public synchronized Collection<KegTap> getTapsWithActiveKeg() {
+		final Set<KegTap> result = Sets.newLinkedHashSet();
+		for (final KegTap tap : mTaps.values()) {
+			if (tap.hasCurrentKeg()) {
+				result.add(tap);
+			}
+		}
+		return result;
+	}
 
-    Collections.sort(results, TAP_COMPARATOR);
-    return results;
-  }
+	@Subscribe
+	public synchronized void onTapSyncResults(TapsChangedEvent event) {
+		final List<KegTap> taps = event.getTaps();
+		final Set<Integer> removedTaps = Sets.newLinkedHashSet(mTaps.keySet());
 
-  public synchronized Collection<KegTap> getTapsWithActiveKeg() {
-    final Set<KegTap> result = Sets.newLinkedHashSet();
-    for (final KegTap tap : mTaps.values()) {
-      if (tap.hasCurrentKeg()) {
-        result.add(tap);
-      }
-    }
-    return result;
-  }
+		for (final KegTap tap : taps) {
+			final KegTap existingTap = getTap(tap.getId());
+			removedTaps.remove(Integer.valueOf(tap.getId()));
 
-  @Subscribe
-  public synchronized void onTapSyncResults(TapsChangedEvent event) {
-    final List<KegTap> taps = event.getTaps();
-    final Set<Integer> removedTaps = Sets.newLinkedHashSet(mTaps.keySet());
+			if (existingTap == null || !existingTap.equals(tap)) {
+				addTap(tap);
+			}
+		}
 
-    for (final KegTap tap : taps) {
-      final KegTap existingTap = getTap(tap.getId());
-      removedTaps.remove(Integer.valueOf(tap.getId()));
+		for (final Integer tapId : removedTaps) {
+			Log.i(TAG, "Removing tap: " + tapId);
+			removeTap(getTap(tapId.intValue()));
+		}
+	}
 
-      if (existingTap == null || !existingTap.equals(tap)) {
-        addTap(tap);
-      }
-    }
+	public synchronized void setTapVisibility(KegTap tap, boolean isVisible) {
+		final String tapId = String.valueOf(tap.getId());
+		final Set<String> hiddenTaps = mLocalConfig.getStringSet(KEY_HIDDEN_TAP_IDS,
+				Sets.<String>newLinkedHashSet());
 
-    for (final Integer tapId : removedTaps) {
-      Log.i(TAG, "Removing tap: " + tapId);
-      removeTap(getTap(tapId.intValue()));
-    }
-  }
+		final boolean changed;
+		if (isVisible) {
+			changed = hiddenTaps.remove(tapId);
+		} else {
+			changed = hiddenTaps.add(tapId);
+		}
 
-  public synchronized void setTapVisibility(KegTap tap, boolean isVisible) {
-    final String tapId = String.valueOf(tap.getId());
-    final Set<String> hiddenTaps = mLocalConfig.getStringSet(KEY_HIDDEN_TAP_IDS,
-        Sets.<String>newLinkedHashSet());
+		if (changed) {
+			Log.d(TAG, "Setting tap " + tap.getId() + " visible=" + isVisible);
+			mLocalConfig.putStringSet(KEY_HIDDEN_TAP_IDS, hiddenTaps);
+			postUpdate();
+		}
+	}
 
-    final boolean changed;
-    if (isVisible) {
-      changed = hiddenTaps.remove(tapId);
-    } else {
-      changed = hiddenTaps.add(tapId);
-    }
+	public synchronized boolean getTapVisibility(KegTap tap) {
+		return !mLocalConfig.getStringSet(KEY_HIDDEN_TAP_IDS,
+				Sets.<String>newLinkedHashSet()).contains(String.valueOf(tap.getId()));
+	}
 
-    if (changed) {
-      Log.d(TAG, "Setting tap " + tap.getId() + " visible=" + isVisible);
-      mLocalConfig.putStringSet(KEY_HIDDEN_TAP_IDS, hiddenTaps);
-      postUpdate();
-    }
-  }
+	@Override
+	protected synchronized void dump(IndentingPrintWriter writer) {
+		writer.printPair("numTaps", Integer.valueOf(mTaps.size())).println();
 
-  public synchronized boolean getTapVisibility(KegTap tap) {
-    return !mLocalConfig.getStringSet(KEY_HIDDEN_TAP_IDS,
-        Sets.<String>newLinkedHashSet()).contains(String.valueOf(tap.getId()));
-  }
-
-  @Override
-  protected synchronized void dump(IndentingPrintWriter writer) {
-    writer.printPair("numTaps", Integer.valueOf(mTaps.size())).println();
-
-    if (mTaps.size() > 0) {
-      writer.println();
-      writer.println("All taps:");
-      writer.println();
-      writer.increaseIndent();
-      for (final KegTap tap : mTaps.values()) {
-        writer.printPair("tap", tap).println();
-        writer.println();
-      }
-      writer.decreaseIndent();
-    }
-  }
+		if (mTaps.size() > 0) {
+			writer.println();
+			writer.println("All taps:");
+			writer.println();
+			writer.increaseIndent();
+			for (final KegTap tap : mTaps.values()) {
+				writer.printPair("tap", tap).println();
+				writer.println();
+			}
+			writer.decreaseIndent();
+		}
+	}
 
 }

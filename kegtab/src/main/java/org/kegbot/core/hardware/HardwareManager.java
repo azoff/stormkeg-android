@@ -21,12 +21,10 @@ package org.kegbot.core.hardware;
 
 import android.content.Context;
 import android.util.Log;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.squareup.otto.Bus;
-
 import org.kegbot.app.alert.AlertCore;
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.app.event.Event;
@@ -59,137 +57,138 @@ import java.util.Set;
  */
 public class HardwareManager extends Manager {
 
-  private static String TAG = HardwareManager.class.getSimpleName();
+	private static String TAG = HardwareManager.class.getSimpleName();
 
-  /** All controllers, by operational status. */
-  private final Map<Controller, Boolean> mControllers = Maps.newLinkedHashMap();
+	/**
+	 * All controllers, by operational status.
+	 */
+	private final Map<Controller, Boolean> mControllers = Maps.newLinkedHashMap();
 
-  private final Set<ControllerManager> mManagers = Sets.newLinkedHashSet();
-  private KegboardManager mKegboardManager;
+	private final Set<ControllerManager> mManagers = Sets.newLinkedHashSet();
+	private final ControllerManager.Listener mListener = new ControllerManager.Listener() {
+		@Override
+		public void onControllerAttached(Controller controller) {
+			HardwareManager.this.onControllerAttached(controller);
+		}
 
-  private final ControllerManager.Listener mListener = new ControllerManager.Listener() {
-    @Override
-    public void onControllerAttached(Controller controller) {
-      HardwareManager.this.onControllerAttached(controller);
-    }
+		@Override
+		public void onControllerEvent(Controller controller, Event event) {
+			HardwareManager.this.onControllerEvent(controller, event);
+		}
 
-    @Override
-    public void onControllerEvent(Controller controller, Event event) {
-      HardwareManager.this.onControllerEvent(controller, event);
-    }
+		@Override
+		public void onControllerRemoved(Controller controller) {
+			HardwareManager.this.onControllerRemoved(controller);
+		}
+	};
+	private KegboardManager mKegboardManager;
 
-    @Override
-    public void onControllerRemoved(Controller controller) {
-      HardwareManager.this.onControllerRemoved(controller);
-    }
-  };
+	public HardwareManager(Bus bus, Context context, AppConfiguration config, Backend backend) {
+		super(bus);
 
-  public HardwareManager(Bus bus, Context context, AppConfiguration config, Backend backend) {
-    super(bus);
+		// TODO(mikey): Still need backend?
 
-    // TODO(mikey): Still need backend?
+		mKegboardManager = new KegboardManager(getBus(), context, mListener);
+		mManagers.add(mKegboardManager);
+		mManagers.add(new FakeControllerManager(getBus(), mListener));
+	}
 
-    mKegboardManager = new KegboardManager(getBus(), context, mListener);
-    mManagers.add(mKegboardManager);
-    mManagers.add(new FakeControllerManager(getBus(), mListener));
-  }
+	@Override
+	public void start() {
+		for (final ControllerManager subordinate : mManagers) {
+			subordinate.start();
+		}
+		getBus().register(this);
+	}
 
-  @Override
-  public void start() {
-    for (final ControllerManager subordinate : mManagers) {
-      subordinate.start();
-    }
-    getBus().register(this);
-  }
+	public void refreshSoon() {
+		for (final ControllerManager subordinate : mManagers) {
+			subordinate.refreshSoon();
+		}
+	}
 
-  public void refreshSoon() {
-    for (final ControllerManager subordinate : mManagers) {
-      subordinate.refreshSoon();
-    }
-  }
+	private synchronized void onControllerAttached(Controller controller) {
+		Log.d(TAG, "Controller attached: " + controller);
+		if (mControllers.containsKey(controller)) {
+			Log.w(TAG, "Controller already attached!");
+			return;
+		}
+		mControllers.put(controller, Boolean.FALSE);
+		postOnMainThread(new ControllerAttachedEvent(controller));
+	}
 
-  private synchronized void onControllerAttached(Controller controller) {
-    Log.d(TAG, "Controller attached: " + controller);
-    if (mControllers.containsKey(controller)) {
-      Log.w(TAG, "Controller already attached!");
-      return;
-    }
-    mControllers.put(controller, Boolean.FALSE);
-    postOnMainThread(new ControllerAttachedEvent(controller));
-  }
+	private synchronized void onControllerEvent(Controller controller, Event event) {
+		if (!mControllers.containsKey(controller)) {
+			Log.w(TAG, "Received event from unknown controller: " + controller);
+			return;
+		}
+		if (controller.getStatus().equals(Controller.STATUS_OK)) {
+			postOnMainThread(event);
+		} else {
+			Log.d(TAG, String.format("Dropping event from offline controller %s: %s",
+					controller, event));
+		}
+	}
 
-  private synchronized void onControllerEvent(Controller controller, Event event) {
-    if (!mControllers.containsKey(controller)) {
-      Log.w(TAG, "Received event from unknown controller: " + controller);
-      return;
-    }
-    if (controller.getStatus().equals(Controller.STATUS_OK)) {
-      postOnMainThread(event);
-    } else {
-      Log.d(TAG, String.format("Dropping event from offline controller %s: %s",
-          controller, event));
-    }
-  }
+	private synchronized void onControllerRemoved(Controller controller) {
+		if (!mControllers.containsKey(controller)) {
+			Log.w(TAG, "Unknown controller was detached: " + controller);
+			return;
+		}
+		mControllers.remove(controller);
+		postOnMainThread(new ControllerDetachedEvent(controller));
 
-  private synchronized void onControllerRemoved(Controller controller) {
-    if (!mControllers.containsKey(controller)) {
-      Log.w(TAG, "Unknown controller was detached: " + controller);
-      return;
-    }
-    mControllers.remove(controller);
-    postOnMainThread(new ControllerDetachedEvent(controller));
+		postAlert(AlertCore.newBuilder("Controller Removed")
+				.setId(controller.getName())
+				.build());
+	}
 
-    postAlert(AlertCore.newBuilder("Controller Removed")
-        .setId(controller.getName())
-        .build());
-  }
+	@Override
+	public void stop() {
+		for (final ControllerManager subordinate : mManagers) {
+			subordinate.stop();
+		}
+		getBus().unregister(this);
+	}
 
-  @Override
-  public void stop() {
-    for (final ControllerManager subordinate : mManagers) {
-      subordinate.stop();
-    }
-    getBus().unregister(this);
-  }
+	public void enableController(Controller controller) {
 
-  public void enableController(Controller controller) {
+	}
 
-  }
+	public void toggleOutput(final KegTap tap, final boolean enable) {
+		Preconditions.checkNotNull(tap);
+		Log.d(TAG, "toggleOutput tap=" + tap.getId() + " enabled=" + enable);
 
-  public void toggleOutput(final KegTap tap, final boolean enable) {
-    Preconditions.checkNotNull(tap);
-    Log.d(TAG, "toggleOutput tap=" + tap.getId() + " enabled=" + enable);
+		final FlowToggle toggle = tap.getToggle();
+		if (toggle == null) {
+			Log.d(TAG, "No toggle bound to tap.");
+			return;
+		}
 
-    final FlowToggle toggle = tap.getToggle();
-    if (toggle == null) {
-      Log.d(TAG, "No toggle bound to tap.");
-      return;
-    }
+		mKegboardManager.toggleOutput(toggle, enable);
+	}
 
-    mKegboardManager.toggleOutput(toggle, enable);
-  }
+	@Override
+	protected void dump(IndentingPrintWriter writer) {
+		writer.print("Controllers:");
+		writer.println();
+		writer.increaseIndent();
+		for (final Controller controller : mControllers.keySet()) {
+			writer.printPair(controller.toString(), mControllers.get(controller)).println();
+		}
+		writer.decreaseIndent();
+		writer.println();
 
-  @Override
-  protected void dump(IndentingPrintWriter writer) {
-    writer.print("Controllers:");
-    writer.println();
-    writer.increaseIndent();
-    for (final Controller controller : mControllers.keySet()) {
-      writer.printPair(controller.toString(), mControllers.get(controller)).println();
-    }
-    writer.decreaseIndent();
-    writer.println();
-
-    for (final ControllerManager subordinate : mManagers) {
-      writer.print("Dump of " + subordinate + ":\n");
-      writer.increaseIndent();
-      try {
-        subordinate.dump(writer);
-      } finally {
-        writer.decreaseIndent();
-        writer.println();
-      }
-    }
-  }
+		for (final ControllerManager subordinate : mManagers) {
+			writer.print("Dump of " + subordinate + ":\n");
+			writer.increaseIndent();
+			try {
+				subordinate.dump(writer);
+			} finally {
+				writer.decreaseIndent();
+				writer.println();
+			}
+		}
+	}
 
 }

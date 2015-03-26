@@ -29,69 +29,67 @@ import java.util.regex.Pattern;
  */
 public class Version implements Comparable<Version> {
 
-  public final int MAJOR;
-  public final int MINOR;
-  public final int MICRO;
-  public final String EXTRA;
+	public static final Version UNKNOWN = new Version(0, 0, 0, "unknown");
+	private static final Pattern VERSION_RE = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)([a-z]+\\d+)?");
+	public final int MAJOR;
+	public final int MINOR;
+	public final int MICRO;
+	public final String EXTRA;
 
-  public static final Version UNKNOWN = new Version(0, 0, 0, "unknown");
+	public Version(int major, int minor, int micro, String extra) {
+		MAJOR = major;
+		MINOR = minor;
+		MICRO = micro;
+		EXTRA = extra;
+	}
 
-  private static final Pattern VERSION_RE = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)([a-z]+\\d+)?");
+	public static Version fromString(String versionStr) {
+		final Matcher matcher = VERSION_RE.matcher(versionStr);
+		if (!matcher.matches()) {
+			return UNKNOWN;
+		}
+		final int major = Integer.valueOf(matcher.group(1));
+		final int minor = Integer.valueOf(matcher.group(2));
+		final int micro = Integer.valueOf(matcher.group(3));
+		final String extra = Strings.nullToEmpty(matcher.group(4));
+		return new Version(major, minor, micro, extra);
+	}
 
-  public Version(int major, int minor, int micro, String extra) {
-    MAJOR = major;
-    MINOR = minor;
-    MICRO = micro;
-    EXTRA = extra;
-  }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof Version)) return false;
 
-  public static Version fromString(String versionStr) {
-    final Matcher matcher = VERSION_RE.matcher(versionStr);
-    if (!matcher.matches()) {
-      return UNKNOWN;
-    }
-    final int major = Integer.valueOf(matcher.group(1));
-    final int minor = Integer.valueOf(matcher.group(2));
-    final int micro = Integer.valueOf(matcher.group(3));
-    final String extra = Strings.nullToEmpty(matcher.group(4));
-    return new Version(major, minor, micro, extra);
-  }
+		Version version = (Version) o;
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Version)) return false;
+		if (MAJOR != version.MAJOR) return false;
+		if (MICRO != version.MICRO) return false;
+		if (MINOR != version.MINOR) return false;
+		if (!EXTRA.equals(version.EXTRA)) return false;
 
-    Version version = (Version) o;
+		return true;
+	}
 
-    if (MAJOR != version.MAJOR) return false;
-    if (MICRO != version.MICRO) return false;
-    if (MINOR != version.MINOR) return false;
-    if (!EXTRA.equals(version.EXTRA)) return false;
+	@Override
+	public int hashCode() {
+		int result = MAJOR;
+		result = 31 * result + MINOR;
+		result = 31 * result + MICRO;
+		result = 31 * result + EXTRA.hashCode();
+		return result;
+	}
 
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = MAJOR;
-    result = 31 * result + MINOR;
-    result = 31 * result + MICRO;
-    result = 31 * result + EXTRA.hashCode();
-    return result;
-  }
-
-  @Override
-  public int compareTo(Version other) {
-    if (other == UNKNOWN) {
-      return this == UNKNOWN ? 0 : 1;
-    }
-    if (this.MAJOR != other.MAJOR) {
-      return this.MAJOR - other.MAJOR;
-    }
-    if (this.MINOR != other.MINOR) {
-      return this.MINOR - other.MINOR;
-    }
-    return this.MICRO - other.MICRO;
-  }
+	@Override
+	public int compareTo(Version other) {
+		if (other == UNKNOWN) {
+			return this == UNKNOWN ? 0 : 1;
+		}
+		if (this.MAJOR != other.MAJOR) {
+			return this.MAJOR - other.MAJOR;
+		}
+		if (this.MINOR != other.MINOR) {
+			return this.MINOR - other.MINOR;
+		}
+		return this.MICRO - other.MICRO;
+	}
 }

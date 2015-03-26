@@ -23,14 +23,14 @@ import org.kegbot.app.event.Event;
 
 public class ControllerAttachedEvent implements Event {
 
-  private final Controller mController;
+	private final Controller mController;
 
-  public ControllerAttachedEvent(Controller controller) {
-    mController = controller;
-  }
+	public ControllerAttachedEvent(Controller controller) {
+		mController = controller;
+	}
 
-  public Controller getController() {
-    return mController;
-  }
+	public Controller getController() {
+		return mController;
+	}
 
 }

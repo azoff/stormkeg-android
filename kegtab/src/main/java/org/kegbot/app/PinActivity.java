@@ -34,9 +34,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
-
 import com.google.common.base.Strings;
-
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.core.KegbotCore;
 
@@ -49,121 +47,121 @@ import org.kegbot.core.KegbotCore;
  */
 public class PinActivity extends Activity {
 
-  private static final String TAG = PinActivity.class.getSimpleName();
-  private static final String EXTRA_KEY_START_INTENT = "start_intent";
+	private static final String TAG = PinActivity.class.getSimpleName();
+	private static final String EXTRA_KEY_START_INTENT = "start_intent";
 
-  private AppConfiguration mConfig;
-  private EditText mPinText;
-  private TextView mErrorText;
-  private Button mPinButton;
+	private AppConfiguration mConfig;
+	private EditText mPinText;
+	private TextView mErrorText;
+	private Button mPinButton;
 
-  @Override
-  protected void onStart() {
-    super.onStart();
+	/**
+	 * Start a new activity with pin verification.
+	 *
+	 * @param context     the context to be used for starting.
+	 * @param startIntent the intent which shall be used to start the activity upon success.
+	 */
+	public static void startThroughPinActivity(Context context, Intent startIntent) {
+		if (Strings.isNullOrEmpty(KegbotCore.getInstance(context).getConfiguration().getPin())) {
+			// Short circuit: no manager pin.
+			context.startActivity(startIntent);
+			return;
+		}
+		final Intent intent = new Intent(context, PinActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+		if ((startIntent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0) {
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		}
+		intent.putExtra(EXTRA_KEY_START_INTENT, startIntent);
+		context.startActivity(intent);
+	}
 
-    mConfig = KegbotCore.getInstance(this).getConfiguration();
-    if (Strings.isNullOrEmpty(mConfig.getPin())) {
-      onPinSuccess();
-      return;
-    }
+	@Override
+	protected void onStart() {
+		super.onStart();
 
-    setContentView(R.layout.enter_pin_activity);
+		mConfig = KegbotCore.getInstance(this).getConfiguration();
+		if (Strings.isNullOrEmpty(mConfig.getPin())) {
+			onPinSuccess();
+			return;
+		}
 
-    mPinText = (EditText) findViewById(R.id.managerPin);
+		setContentView(R.layout.enter_pin_activity);
 
-    mPinText.addTextChangedListener(new TextWatcher() {
-      @Override
-      public void onTextChanged(CharSequence s, int start, int before, int count) {
-        // Fade out error text after pin is re-typed.
-        if (mErrorText.getVisibility() == View.VISIBLE) {
-          final Animation out = new AlphaAnimation(1.0f, 0.0f);
-          out.setDuration(1000);
-          mErrorText.setAnimation(out);
-          mErrorText.setVisibility(View.INVISIBLE);
-        }
-      }
+		mPinText = (EditText) findViewById(R.id.managerPin);
 
-      @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-      }
+		mPinText.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				// Fade out error text after pin is re-typed.
+				if (mErrorText.getVisibility() == View.VISIBLE) {
+					final Animation out = new AlphaAnimation(1.0f, 0.0f);
+					out.setDuration(1000);
+					mErrorText.setAnimation(out);
+					mErrorText.setVisibility(View.INVISIBLE);
+				}
+			}
 
-      @Override
-      public void afterTextChanged(Editable s) {
-      }
-    });
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
 
-    mPinText.setOnEditorActionListener(new OnEditorActionListener() {
-      @Override
-      public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
-          verifyPin();
-          return true;
-        }
-        return false;
-      }
-    });
+			@Override
+			public void afterTextChanged(Editable s) {
+			}
+		});
 
-    mErrorText = (TextView) findViewById(R.id.managerPinError);
+		mPinText.setOnEditorActionListener(new OnEditorActionListener() {
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+					verifyPin();
+					return true;
+				}
+				return false;
+			}
+		});
 
-    mPinButton = (Button) findViewById(R.id.submitButton);
-    mPinButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        verifyPin();
-      }
-    });
+		mErrorText = (TextView) findViewById(R.id.managerPinError);
 
-    final ActionBar bar = getActionBar();
-    if (bar != null) {
-      bar.setTitle("");
-    }
-  }
+		mPinButton = (Button) findViewById(R.id.submitButton);
+		mPinButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				verifyPin();
+			}
+		});
 
-  private void onPinSuccess() {
-    setResult(RESULT_OK);
-    final Intent startIntent = getIntent().getParcelableExtra(EXTRA_KEY_START_INTENT);
-    Log.i(TAG, "Pin validated, starting activity.");
-    if (startIntent == null) {
-      Log.wtf(TAG, "Start intent was null");
-      return;
-    }
-    startActivity(startIntent);
-    finish();
-  }
+		final ActionBar bar = getActionBar();
+		if (bar != null) {
+			bar.setTitle("");
+		}
+	}
 
-  private void onPinFailure() {
-    mPinText.setText("");
-    mErrorText.setVisibility(View.VISIBLE);
-  }
+	private void onPinSuccess() {
+		setResult(RESULT_OK);
+		final Intent startIntent = getIntent().getParcelableExtra(EXTRA_KEY_START_INTENT);
+		Log.i(TAG, "Pin validated, starting activity.");
+		if (startIntent == null) {
+			Log.wtf(TAG, "Start intent was null");
+			return;
+		}
+		startActivity(startIntent);
+		finish();
+	}
 
-  private void verifyPin() {
-    final String pinText = mPinText.getText().toString();
-    if (mConfig.getPin().equalsIgnoreCase(pinText)) {
-      onPinSuccess();
-    } else {
-      onPinFailure();
-    }
-  }
+	private void onPinFailure() {
+		mPinText.setText("");
+		mErrorText.setVisibility(View.VISIBLE);
+	}
 
-  /**
-   * Start a new activity with pin verification.
-   *
-   * @param context     the context to be used for starting.
-   * @param startIntent the intent which shall be used to start the activity upon success.
-   */
-  public static void startThroughPinActivity(Context context, Intent startIntent) {
-    if (Strings.isNullOrEmpty(KegbotCore.getInstance(context).getConfiguration().getPin())) {
-      // Short circuit: no manager pin.
-      context.startActivity(startIntent);
-      return;
-    }
-    final Intent intent = new Intent(context, PinActivity.class);
-    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-    if ((startIntent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0) {
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    }
-    intent.putExtra(EXTRA_KEY_START_INTENT, startIntent);
-    context.startActivity(intent);
-  }
+	private void verifyPin() {
+		final String pinText = mPinText.getText().toString();
+		if (mConfig.getPin().equalsIgnoreCase(pinText)) {
+			onPinSuccess();
+		} else {
+			onPinFailure();
+		}
+	}
 
 }

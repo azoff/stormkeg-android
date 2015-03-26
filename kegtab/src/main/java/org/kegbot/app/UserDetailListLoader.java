@@ -22,9 +22,7 @@ import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
-
 import com.google.common.collect.Lists;
-
 import org.kegbot.backend.Backend;
 import org.kegbot.backend.BackendException;
 import org.kegbot.core.KegbotCore;
@@ -40,76 +38,72 @@ import java.util.concurrent.TimeUnit;
  */
 public class UserDetailListLoader extends AsyncTaskLoader<List<User>> {
 
-  private static final String TAG = UserDetailListLoader.class.getSimpleName();
+	private static final String TAG = UserDetailListLoader.class.getSimpleName();
+	private static Comparator<User> USERS_ALPHABETIC = new Comparator<User>() {
+		@Override
+		public int compare(User object1, User object2) {
+			return object1.getUsername().toLowerCase().compareTo(
+					object2.getUsername().toLowerCase());
+		}
+	};
+	private final List<User> mUsers = Lists.newArrayList();
 
-  private Backend mApi;
+	private final long MAX_LOAD_AGE_MILLIS = TimeUnit.SECONDS.toMillis(15);
+	private Backend mApi;
+	private long mLastLoadMillis = 0;
 
-  private final List<User> mUsers = Lists.newArrayList();
+	/**
+	 * @param context
+	 */
+	public UserDetailListLoader(Context context) {
+		super(context);
+		mApi = KegbotCore.getInstance(context).getBackend();
+	}
 
-  private final long MAX_LOAD_AGE_MILLIS = TimeUnit.SECONDS.toMillis(15);
+	@Override
+	public List<User> loadInBackground() {
+		Log.d(TAG, "loadInBackground");
+		try {
+			final List<User> result = mApi.getUsers();
+			mUsers.clear();
+			mUsers.addAll(result);
+			Collections.sort(mUsers, USERS_ALPHABETIC);
+			return mUsers;
+		} catch (BackendException e) {
+			// TODO(mikey): retry?
+			Log.d(TAG, "Error loading. ", e);
+			return Lists.newArrayList();
+		}
+	}
 
-  private long mLastLoadMillis = 0;
+	@Override
+	protected void onStartLoading() {
+		Log.d(TAG, "onStartLoading");
+		final long now = SystemClock.uptimeMillis();
+		if ((now - mLastLoadMillis) > MAX_LOAD_AGE_MILLIS) {
+			Log.d(TAG, "Forcing load, mLastLoadMillis=" + mLastLoadMillis);
+			mLastLoadMillis = now;
+			forceLoad();
+		} else {
+			Log.d(TAG, "delivering cached results");
+			deliverResult(mUsers);
+		}
+	}
 
-  private static Comparator<User> USERS_ALPHABETIC = new Comparator<User>() {
-    @Override
-    public int compare(User object1, User object2) {
-      return object1.getUsername().toLowerCase().compareTo(
-          object2.getUsername().toLowerCase());
-    }
-  };
+	@Override
+	protected void onReset() {
+		Log.d(TAG, "onReset");
+		super.onReset();
+		onStopLoading();
+	}
 
-  /**
-   * @param context
-   */
-  public UserDetailListLoader(Context context) {
-    super(context);
-    mApi = KegbotCore.getInstance(context).getBackend();
-  }
-
-  @Override
-  public List<User> loadInBackground() {
-    Log.d(TAG, "loadInBackground");
-    try {
-      final List<User> result = mApi.getUsers();
-      mUsers.clear();
-      mUsers.addAll(result);
-      Collections.sort(mUsers, USERS_ALPHABETIC);
-      return mUsers;
-    } catch (BackendException e) {
-      // TODO(mikey): retry?
-      Log.d(TAG, "Error loading. ", e);
-      return Lists.newArrayList();
-    }
-  }
-
-  @Override
-  protected void onStartLoading() {
-    Log.d(TAG, "onStartLoading");
-    final long now = SystemClock.uptimeMillis();
-    if ((now - mLastLoadMillis) > MAX_LOAD_AGE_MILLIS) {
-      Log.d(TAG, "Forcing load, mLastLoadMillis=" + mLastLoadMillis);
-      mLastLoadMillis = now;
-      forceLoad();
-    } else {
-      Log.d(TAG, "delivering cached results");
-      deliverResult(mUsers);
-    }
-  }
-
-  @Override
-  protected void onReset() {
-    Log.d(TAG, "onReset");
-    super.onReset();
-    onStopLoading();
-  }
-
-  /**
-   * Handles a request to stop the Loader.
-   */
-  @Override
-  protected void onStopLoading() {
-    // Attempt to cancel the current load task if possible.
-    cancelLoad();
-  }
+	/**
+	 * Handles a request to stop the Loader.
+	 */
+	@Override
+	protected void onStopLoading() {
+		// Attempt to cancel the current load task if possible.
+		cancelLoad();
+	}
 
 }

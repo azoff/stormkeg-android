@@ -26,14 +26,14 @@ import org.kegbot.app.alert.AlertCore.Alert;
  */
 public class AlertEvent implements Event {
 
-  private final Alert mAlert;
+	private final Alert mAlert;
 
-  public AlertEvent(Alert alert) {
-    mAlert = alert;
-  }
+	public AlertEvent(Alert alert) {
+		mAlert = alert;
+	}
 
-  public Alert getAlert() {
-    return mAlert;
-  }
+	public Alert getAlert() {
+		return mAlert;
+	}
 
 }

@@ -22,22 +22,22 @@ import org.codehaus.jackson.JsonNode;
 
 public class NotAuthorizedException extends KegbotApiException {
 
-  public NotAuthorizedException() {
-  }
+	public NotAuthorizedException() {
+	}
 
-  public NotAuthorizedException(JsonNode errors) {
-    super(errors);
-  }
+	public NotAuthorizedException(JsonNode errors) {
+		super(errors);
+	}
 
-  public NotAuthorizedException(String detailMessage) {
-    super(detailMessage);
-  }
+	public NotAuthorizedException(String detailMessage) {
+		super(detailMessage);
+	}
 
-  public NotAuthorizedException(Throwable throwable) {
-    super(throwable);
-  }
+	public NotAuthorizedException(Throwable throwable) {
+		super(throwable);
+	}
 
-  public NotAuthorizedException(String detailMessage, Throwable throwable) {
-    super(detailMessage, throwable);
-  }
+	public NotAuthorizedException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
 }

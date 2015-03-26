@@ -22,7 +22,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.webkit.WebView;
-
 import org.kegbot.app.R;
 
 /**
@@ -32,45 +31,45 @@ import org.kegbot.app.R;
  */
 public class ThirdPartyLicensesActivity extends Activity {
 
-  private static final String TAG = ThirdPartyLicensesActivity.class.getSimpleName();
+	private static final String TAG = ThirdPartyLicensesActivity.class.getSimpleName();
 
-  private WebView mWebView;
+	private WebView mWebView;
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    Log.d(TAG, "onCreate");
-    setContentView(R.layout.third_party_licenses_fragment_layout);
-    mWebView = (WebView) findViewById(R.id.thirdPartyLicensesWebView);
-    mWebView.loadUrl("file:///android_asset/html/third_party_licenses.html");
-  }
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		Log.d(TAG, "onCreate");
+		setContentView(R.layout.third_party_licenses_fragment_layout);
+		mWebView = (WebView) findViewById(R.id.thirdPartyLicensesWebView);
+		mWebView.loadUrl("file:///android_asset/html/third_party_licenses.html");
+	}
 
-  @Override
-  public void onDestroy() {
-    super.onDestroy();
-    Log.d(TAG, "onDestroy");
-    if (mWebView != null) {
-      mWebView.destroy();
-      mWebView = null;
-    }
-  }
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Log.d(TAG, "onDestroy");
+		if (mWebView != null) {
+			mWebView.destroy();
+			mWebView = null;
+		}
+	}
 
-  @Override
-  public void onPause() {
-    super.onPause();
-    Log.d(TAG, "onPause");
-    if (mWebView != null) {
-      mWebView.onPause();
-    }
-  }
+	@Override
+	public void onPause() {
+		super.onPause();
+		Log.d(TAG, "onPause");
+		if (mWebView != null) {
+			mWebView.onPause();
+		}
+	}
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    Log.d(TAG, "onResume");
-    if (mWebView != null) {
-      mWebView.onResume();
-    }
-  }
+	@Override
+	public void onResume() {
+		super.onResume();
+		Log.d(TAG, "onResume");
+		if (mWebView != null) {
+			mWebView.onResume();
+		}
+	}
 
 }

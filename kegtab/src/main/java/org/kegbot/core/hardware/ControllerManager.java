@@ -24,24 +24,32 @@ import org.kegbot.app.util.IndentingPrintWriter;
 
 public interface ControllerManager {
 
-  /** Callback interface. */
-  interface Listener {
-    /** Issued when a new controller has been attached. */
-    public void onControllerAttached(Controller controller);
+	public void start();
 
-    /** Issued when a controller has an event. */
-    public void onControllerEvent(Controller controller, Event event);
+	public void stop();
 
-    /** Issued when a controller has been removed. */
-    public void onControllerRemoved(Controller controller);
-  }
+	public void refreshSoon();
 
-  public void start();
+	public void dump(IndentingPrintWriter writer);
 
-  public void stop();
+	/**
+	 * Callback interface.
+	 */
+	interface Listener {
+		/**
+		 * Issued when a new controller has been attached.
+		 */
+		public void onControllerAttached(Controller controller);
 
-  public void refreshSoon();
+		/**
+		 * Issued when a controller has an event.
+		 */
+		public void onControllerEvent(Controller controller, Event event);
 
-  public void dump(IndentingPrintWriter writer);
+		/**
+		 * Issued when a controller has been removed.
+		 */
+		public void onControllerRemoved(Controller controller);
+	}
 
 }

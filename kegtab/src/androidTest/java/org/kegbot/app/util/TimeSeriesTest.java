@@ -27,39 +27,39 @@ import junit.framework.TestCase;
  */
 public class TimeSeriesTest extends TestCase {
 
-  public void testTimeSeries_noMinResolution_noRebasing() {
-    TimeSeries.Builder builder = TimeSeries.newBuilder(0, false);
+	public void testTimeSeries_noMinResolution_noRebasing() {
+		TimeSeries.Builder builder = TimeSeries.newBuilder(0, false);
 
-    builder.add(10, 1);
-    builder.add(11, 1);
-    builder.add(20, 1);
+		builder.add(10, 1);
+		builder.add(11, 1);
+		builder.add(20, 1);
 
-    assertEquals(TimeSeries.fromString("10:1 11:1 20:1"), builder.build());
-  }
+		assertEquals(TimeSeries.fromString("10:1 11:1 20:1"), builder.build());
+	}
 
-  public void testTimeSeries_withMinResolution_noRebasing() {
-    TimeSeries.Builder builder = TimeSeries.newBuilder(10, false);
+	public void testTimeSeries_withMinResolution_noRebasing() {
+		TimeSeries.Builder builder = TimeSeries.newBuilder(10, false);
 
-    builder.add(10, 1);
-    builder.add(11, 1);
-    builder.add(20, 1);
+		builder.add(10, 1);
+		builder.add(11, 1);
+		builder.add(20, 1);
 
-    assertEquals(TimeSeries.fromString("10:2 20:1"), builder.build());
-  }
+		assertEquals(TimeSeries.fromString("10:2 20:1"), builder.build());
+	}
 
-  public void testTimeSeries_withMinResolution_withRebasing() {
-    TimeSeries.Builder builder = TimeSeries.newBuilder(10, true);
+	public void testTimeSeries_withMinResolution_withRebasing() {
+		TimeSeries.Builder builder = TimeSeries.newBuilder(10, true);
 
-    builder.add(10, 1);
-    builder.add(11, 1);
-    builder.add(20, 1);
+		builder.add(10, 1);
+		builder.add(11, 1);
+		builder.add(20, 1);
 
-    assertEquals(TimeSeries.fromString("0:2 10:1"), builder.build());
-  }
+		assertEquals(TimeSeries.fromString("0:2 10:1"), builder.build());
+	}
 
-  public void testToFromString() {
-    TimeSeries ts = TimeSeries.fromString("0:2 10:1");
-    assertEquals("0:2 10:1", ts.toString());
-  }
+	public void testToFromString() {
+		TimeSeries ts = TimeSeries.fromString("0:2 10:1");
+		assertEquals("0:2 10:1", ts.toString());
+	}
 
 }

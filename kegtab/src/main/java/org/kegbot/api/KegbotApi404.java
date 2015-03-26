@@ -22,22 +22,22 @@ import org.codehaus.jackson.JsonNode;
 
 public class KegbotApi404 extends KegbotApiException {
 
-  public KegbotApi404() {
-  }
+	public KegbotApi404() {
+	}
 
-  public KegbotApi404(JsonNode errors) {
-    super(errors);
-  }
+	public KegbotApi404(JsonNode errors) {
+		super(errors);
+	}
 
-  public KegbotApi404(String detailMessage) {
-    super(detailMessage);
-  }
+	public KegbotApi404(String detailMessage) {
+		super(detailMessage);
+	}
 
-  public KegbotApi404(Throwable throwable) {
-    super(throwable);
-  }
+	public KegbotApi404(Throwable throwable) {
+		super(throwable);
+	}
 
-  public KegbotApi404(String detailMessage, Throwable throwable) {
-    super(detailMessage, throwable);
-  }
+	public KegbotApi404(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
 }

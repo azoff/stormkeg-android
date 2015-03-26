@@ -30,39 +30,38 @@ import java.util.concurrent.Executors;
  */
 public abstract class BackgroundManager extends Manager {
 
-  private ExecutorService mExecutorService = null;
+	private final Runnable mRunnable = new Runnable() {
+		@Override
+		public void run() {
+			runInBackground();
+		}
+	};
+	private ExecutorService mExecutorService = null;
 
-  private final Runnable mRunnable = new Runnable() {
-    @Override
-    public void run() {
-      runInBackground();
-    }
-  };
+	public BackgroundManager(Bus bus) {
+		super(bus);
+	}
 
-  public BackgroundManager(Bus bus) {
-    super(bus);
-  }
+	@Override
+	protected synchronized void start() {
+		if (mExecutorService == null) {
+			mExecutorService = Executors.newSingleThreadExecutor();
+			mExecutorService.execute(mRunnable);
+		}
+	}
 
-  @Override
-  protected synchronized void start() {
-    if (mExecutorService == null) {
-      mExecutorService = Executors.newSingleThreadExecutor();
-      mExecutorService.execute(mRunnable);
-    }
-  }
+	@Override
+	protected synchronized void stop() {
+		if (mExecutorService != null) {
+			mExecutorService.shutdown();
+			mExecutorService = null;
+		}
+	}
 
-  @Override
-  protected synchronized void stop() {
-    if (mExecutorService != null) {
-      mExecutorService.shutdown();
-      mExecutorService = null;
-    }
-  }
-
-  /**
-   * Runs in the background after calling {@link #start()}. Implementations performing long-lived
-   * background work should respond to {@link #stop()} and abort the work.
-   */
-  protected abstract void runInBackground();
+	/**
+	 * Runs in the background after calling {@link #start()}. Implementations performing long-lived
+	 * background work should respond to {@link #stop()} and abort the work.
+	 */
+	protected abstract void runInBackground();
 
 }

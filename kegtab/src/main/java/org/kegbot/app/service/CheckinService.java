@@ -18,11 +18,7 @@
  */
 package org.kegbot.app.service;
 
-import android.app.AlarmManager;
-import android.app.IntentService;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
+import android.app.*;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -30,7 +26,6 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.SystemClock;
 import android.util.Log;
-
 import org.kegbot.app.KegbotApplication;
 import org.kegbot.app.R;
 import org.kegbot.app.config.AppConfiguration;
@@ -49,154 +44,153 @@ import java.util.Date;
  */
 public class CheckinService extends IntentService {
 
-  private static final String TAG = CheckinService.class.getSimpleName();
-  static final String CHECKIN_NOW_ACTION = "org.kegbot.app.CHECKIN";
+	static final String CHECKIN_NOW_ACTION = "org.kegbot.app.CHECKIN";
+	private static final String TAG = CheckinService.class.getSimpleName();
+	private static final long CHECKIN_INTERVAL_MILLIS = AlarmManager.INTERVAL_HALF_DAY;
 
-  private static final long CHECKIN_INTERVAL_MILLIS = AlarmManager.INTERVAL_HALF_DAY;
+	private static final int CHECKIN_NOTIFICATION_ID = 100;
 
-  private static final int CHECKIN_NOTIFICATION_ID = 100;
+	private AppConfiguration mConfig;
+	private PendingIntent mPendingIntent;
+	private WakeLock mWakeLock;
 
-  private AppConfiguration mConfig;
-  private PendingIntent mPendingIntent;
-  private WakeLock mWakeLock;
+	public CheckinService() {
+		super("CheckinService");
+	}
 
-  public CheckinService() {
-    super("CheckinService");
-  }
+	private static Intent getCheckinNowIntent(Context context) {
+		final Intent intent = new Intent(CHECKIN_NOW_ACTION);
+		return intent;
+	}
 
-  @Override
-  public void onCreate() {
-    super.onCreate();
+	public static void requestImmediateCheckin(Context context) {
+		Log.d(TAG, "Requesting immediate checkin.");
+		final Intent intent = getCheckinNowIntent(context);
+		context.sendBroadcast(intent);
+	}
 
-    mConfig = ((KegbotApplication) getApplication()).getConfig();
-    final PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-    mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kbcheckin");
+	public static void startCheckinService(Context context, boolean checkinNow) {
+		final Intent intent = new Intent(context, CheckinService.class);
+		if (checkinNow) {
+			intent.setAction(CHECKIN_NOW_ACTION);
+		}
+		context.startService(intent);
+	}
 
-    registerAlarm();
-  }
+	@Override
+	public void onCreate() {
+		super.onCreate();
 
-  @Override
-  public int onStartCommand(Intent intent, int flags, int startId) {
-    acquireWakeLock();
-    return super.onStartCommand(intent, flags, startId);
-  }
+		mConfig = ((KegbotApplication) getApplication()).getConfig();
+		final PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+		mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kbcheckin");
 
-  @Override
-  protected void onHandleIntent(Intent intent) {
-    // If action was unset, it means the service was started
-    // only to schedule the next checkin.
-    try {
-      if (CHECKIN_NOW_ACTION.equals(intent.getAction())) {
-        doCheckin();
-      }
-    } finally {
-      releaseWakeLock();
-    }
-  }
+		registerAlarm();
+	}
 
-  @Override
-  protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-    super.dump(fd, writer, args);
-    writer.println(
-        String.format("Last checkin attempt: %s", new Date(mConfig.getLastCheckinAttempt())));
-    writer.println(
-        String.format("Last checkin success: %s", new Date(mConfig.getLastCheckinSuccess())));
-  }
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		acquireWakeLock();
+		return super.onStartCommand(intent, flags, startId);
+	}
 
-  private void registerAlarm() {
-    unregisterAlarm();
-    Log.d(TAG, "Registering alarm.");
-    final Intent intent = getCheckinNowIntent(this);
-    mPendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-    final AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-    final long nextCheckin = SystemClock.elapsedRealtime() + CHECKIN_INTERVAL_MILLIS;
-    alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, nextCheckin,
-        CHECKIN_INTERVAL_MILLIS, mPendingIntent);
-  }
+	@Override
+	protected void onHandleIntent(Intent intent) {
+		// If action was unset, it means the service was started
+		// only to schedule the next checkin.
+		try {
+			if (CHECKIN_NOW_ACTION.equals(intent.getAction())) {
+				doCheckin();
+			}
+		} finally {
+			releaseWakeLock();
+		}
+	}
 
-  private void unregisterAlarm() {
-    if (mPendingIntent != null) {
-      Log.d(TAG, "Unregistering alarm.");
-      final AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-      alarmManager.cancel(mPendingIntent);
-      mPendingIntent = null;
-    }
-  }
+	@Override
+	protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
+		super.dump(fd, writer, args);
+		writer.println(
+				String.format("Last checkin attempt: %s", new Date(mConfig.getLastCheckinAttempt())));
+		writer.println(
+				String.format("Last checkin success: %s", new Date(mConfig.getLastCheckinSuccess())));
+	}
 
-  private void acquireWakeLock() {
-    synchronized (mWakeLock) {
-      if (!mWakeLock.isHeld()) {
-        Log.d(TAG, "Acquiring wake lock.");
-        mWakeLock.acquire();
-      }
-    }
-  }
+	private void registerAlarm() {
+		unregisterAlarm();
+		Log.d(TAG, "Registering alarm.");
+		final Intent intent = getCheckinNowIntent(this);
+		mPendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+		final AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+		final long nextCheckin = SystemClock.elapsedRealtime() + CHECKIN_INTERVAL_MILLIS;
+		alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, nextCheckin,
+				CHECKIN_INTERVAL_MILLIS, mPendingIntent);
+	}
 
-  private void releaseWakeLock() {
-    synchronized (mWakeLock) {
-      if (mWakeLock.isHeld()) {
-        Log.d(TAG, "Releasing wake lock.");
-        mWakeLock.release();
-      }
-    }
-  }
+	private void unregisterAlarm() {
+		if (mPendingIntent != null) {
+			Log.d(TAG, "Unregistering alarm.");
+			final AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+			alarmManager.cancel(mPendingIntent);
+			mPendingIntent = null;
+		}
+	}
 
-  private void doCheckin() {
-    final CheckinClient client = CheckinClient.fromContext(getApplicationContext());
-    try {
-      client.checkin();
-    } catch (IOException e) {
-      Log.w(TAG, "Checkin failed.", e);
-      return;
-    }
+	private void acquireWakeLock() {
+		synchronized (mWakeLock) {
+			if (!mWakeLock.isHeld()) {
+				Log.d(TAG, "Acquiring wake lock.");
+				mWakeLock.acquire();
+			}
+		}
+	}
 
-    NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+	private void releaseWakeLock() {
+		synchronized (mWakeLock) {
+			if (mWakeLock.isHeld()) {
+				Log.d(TAG, "Releasing wake lock.");
+				mWakeLock.release();
+			}
+		}
+	}
 
-    if (mConfig.getUpdateAvailable()) {
-      Log.d(TAG, "Update is available, notifying..");
-      final boolean updateRequired = mConfig.getUpdateRequired();
+	private void doCheckin() {
+		final CheckinClient client = CheckinClient.fromContext(getApplicationContext());
+		try {
+			client.checkin();
+		} catch (IOException e) {
+			Log.w(TAG, "Checkin failed.", e);
+			return;
+		}
 
-      Intent notificationIntent = new Intent(Intent.ACTION_VIEW);
-      notificationIntent.setData(Uri.parse("market://details?id=org.kegbot.app"));
-      PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+		NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-      int titleRes = updateRequired ? R.string.checkin_update_required_title
-          : R.string.checkin_update_available_title;
+		if (mConfig.getUpdateAvailable()) {
+			Log.d(TAG, "Update is available, notifying..");
+			final boolean updateRequired = mConfig.getUpdateRequired();
 
-      final Notification.Builder builder = new Notification.Builder(this)
-          .setSmallIcon(updateRequired ? R.drawable.icon_warning : R.drawable.icon_download)
-          .setContentTitle(getString(titleRes))
-          .setContentText(getString(R.string.checkin_update_description))
-          .setContentIntent(contentIntent)
-          .setOnlyAlertOnce(true)
-          .setAutoCancel(true);
+			Intent notificationIntent = new Intent(Intent.ACTION_VIEW);
+			notificationIntent.setData(Uri.parse("market://details?id=org.kegbot.app"));
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-      final Notification notification = Utils.buildNotification(builder);
+			int titleRes = updateRequired ? R.string.checkin_update_required_title
+					: R.string.checkin_update_available_title;
 
-      Log.d(TAG, "Posting notification.");
-      nm.notify(CHECKIN_NOTIFICATION_ID, notification);
-    } else {
-      nm.cancel(CHECKIN_NOTIFICATION_ID);
-    }
-  }
+			final Notification.Builder builder = new Notification.Builder(this)
+					.setSmallIcon(updateRequired ? R.drawable.icon_warning : R.drawable.icon_download)
+					.setContentTitle(getString(titleRes))
+					.setContentText(getString(R.string.checkin_update_description))
+					.setContentIntent(contentIntent)
+					.setOnlyAlertOnce(true)
+					.setAutoCancel(true);
 
-  private static Intent getCheckinNowIntent(Context context) {
-    final Intent intent = new Intent(CHECKIN_NOW_ACTION);
-    return intent;
-  }
+			final Notification notification = Utils.buildNotification(builder);
 
-  public static void requestImmediateCheckin(Context context) {
-    Log.d(TAG, "Requesting immediate checkin.");
-    final Intent intent = getCheckinNowIntent(context);
-    context.sendBroadcast(intent);
-  }
-
-  public static void startCheckinService(Context context, boolean checkinNow) {
-    final Intent intent = new Intent(context, CheckinService.class);
-    if (checkinNow) {
-      intent.setAction(CHECKIN_NOW_ACTION);
-    }
-    context.startService(intent);
-  }
+			Log.d(TAG, "Posting notification.");
+			nm.notify(CHECKIN_NOTIFICATION_ID, notification);
+		} else {
+			nm.cancel(CHECKIN_NOTIFICATION_ID);
+		}
+	}
 
 }

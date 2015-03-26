@@ -25,45 +25,45 @@
               android:orientation="vertical"
               android:background="@drawable/shape_rounded_rect">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/username_title"
-        android:textSize="24sp"
-        android:textStyle="bold"/>
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/username_title"
+			android:textSize="24sp"
+			android:textStyle="bold"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/username_description"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="18sp"/>
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/username_description"
+			android:textColor="@android:color/darker_gray"
+			android:textSize="18sp"/>
 
-    <EditText
-        android:id="@+id/apiUsername"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textEmailAddress"
-        android:layout_marginBottom="32dip"/>
+	<EditText
+			android:id="@+id/apiUsername"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:inputType="textEmailAddress"
+			android:layout_marginBottom="32dip"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/password_title"
-        android:textSize="24sp"
-        android:textStyle="bold"/>
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/password_title"
+			android:textSize="24sp"
+			android:textStyle="bold"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/password_description"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="18sp"/>
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/password_description"
+			android:textColor="@android:color/darker_gray"
+			android:textSize="18sp"/>
 
-    <EditText
-        android:id="@+id/apiPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textPassword"/>
+	<EditText
+			android:id="@+id/apiPassword"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:inputType="textPassword"/>
 
 </LinearLayout>

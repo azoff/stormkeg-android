@@ -21,112 +21,112 @@
 <!-- Default styles. Matches Nexus 7 and other devices. -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Globals (common to all styles) -->
+	<!-- Globals (common to all styles) -->
 
-    <style name="divider">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">1dp</item>
-        <item name="android:layout_margin">5dp</item>
-        <item name="android:background">#1FFFFFFF</item>
-    </style>
+	<style name="divider">
+		<item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">1dp</item>
+		<item name="android:layout_margin">5dp</item>
+		<item name="android:background">#1FFFFFFF</item>
+	</style>
 
-    <!-- Buttons -->
+	<!-- Buttons -->
 
-    <style name="largeButton">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">36sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:padding">8dp</item>
-    </style>
+	<style name="largeButton">
+		<item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textSize">36sp</item>
+		<item name="android:textStyle">bold</item>
+		<item name="android:padding">8dp</item>
+	</style>
 
-    <style name="mediumButton" parent="@android:style/TextAppearance.Medium">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">24sp</item>
-    </style>
+	<style name="mediumButton" parent="@android:style/TextAppearance.Medium">
+		<item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textSize">24sp</item>
+	</style>
 
-    <!-- Typography -->
+	<!-- Typography -->
 
-    <style name="header">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginRight">8dp</item>
-        <item name="android:ellipsize">end</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:textSize">36sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
+	<style name="header">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:layout_marginRight">8dp</item>
+		<item name="android:ellipsize">end</item>
+		<item name="android:singleLine">true</item>
+		<item name="android:textSize">36sp</item>
+		<item name="android:textStyle">bold</item>
+	</style>
 
-    <style name="header2">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:ellipsize">end</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:textColor">@color/muted</item>
-    </style>
+	<style name="header2">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:ellipsize">end</item>
+		<item name="android:singleLine">true</item>
+		<item name="android:textSize">22sp</item>
+		<item name="android:textColor">@color/muted</item>
+	</style>
 
-    <style name="subheader">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:ellipsize">end</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:textColor">@color/muted</item>
-    </style>
+	<style name="subheader">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:ellipsize">end</item>
+		<item name="android:singleLine">true</item>
+		<item name="android:textSize">22sp</item>
+		<item name="android:textColor">@color/muted</item>
+	</style>
 
-    <style name="jumboText">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">32sp</item>
-    </style>
+	<style name="jumboText">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textSize">32sp</item>
+	</style>
 
-    <style name="normalText">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">22sp</item>
-    </style>
+	<style name="normalText">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textSize">22sp</item>
+	</style>
 
-    <style name="smallText">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">16sp</item>
-    </style>
+	<style name="smallText">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textSize">16sp</item>
+	</style>
 
-    <!-- Badges (BadgeView.java) -->
+	<!-- Badges (BadgeView.java) -->
 
-    <style name="badge">
-        <item name="android:minWidth">128dp</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">96dp</item>
-    </style>
+	<style name="badge">
+		<item name="android:minWidth">128dp</item>
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">96dp</item>
+	</style>
 
-    <style name="badgeValue">
-        <item name="android:textSize">36sp</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textIsSelectable">false</item>
-    </style>
+	<style name="badgeValue">
+		<item name="android:textSize">36sp</item>
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textStyle">bold</item>
+		<item name="android:textIsSelectable">false</item>
+	</style>
 
-    <style name="badgeCaption">
-        <item name="android:textSize">18sp</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textIsSelectable">false</item>
-        <item name="android:textColor">@color/muted</item>
-    </style>
+	<style name="badgeCaption">
+		<item name="android:textSize">18sp</item>
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:textIsSelectable">false</item>
+		<item name="android:textColor">@color/muted</item>
+	</style>
 
-    <style name="invisibleActivity" parent="@android:style/Theme.Holo">
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowNoTitle">true</item>
+	<style name="invisibleActivity" parent="@android:style/Theme.Holo">
+		<item name="android:windowActionBar">false</item>
+		<item name="android:windowNoTitle">true</item>
 
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:colorBackgroundCacheHint">@null</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowAnimationStyle">@android:style/Animation</item>
-    </style>
+		<item name="android:windowBackground">@android:color/transparent</item>
+		<item name="android:colorBackgroundCacheHint">@null</item>
+		<item name="android:windowIsTranslucent">true</item>
+		<item name="android:windowAnimationStyle">@android:style/Animation</item>
+	</style>
 
 
 </resources>

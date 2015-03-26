@@ -37,137 +37,137 @@ import java.security.NoSuchAlgorithmException;
 
 public class Utils {
 
-  private final static char[] HEX_DIGITS = {
-      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-  };
+	private final static char[] HEX_DIGITS = {
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+	};
 
-  private Utils() {
-    throw new IllegalStateException("Non-instantiable class.");
-  }
+	private Utils() {
+		throw new IllegalStateException("Non-instantiable class.");
+	}
 
-  public static byte[] readFile(String file) throws IOException {
-    return readFile(new File(file));
-  }
+	public static byte[] readFile(String file) throws IOException {
+		return readFile(new File(file));
+	}
 
-  public static byte[] readFile(File file) throws IOException {
-    RandomAccessFile f = new RandomAccessFile(file, "r");
+	public static byte[] readFile(File file) throws IOException {
+		RandomAccessFile f = new RandomAccessFile(file, "r");
 
-    try {
-      long longlength = f.length();
-      int length = (int) longlength;
-      if (length != longlength) {
-        throw new IOException("File size >= 2 GB");
-      }
+		try {
+			long longlength = f.length();
+			int length = (int) longlength;
+			if (length != longlength) {
+				throw new IOException("File size >= 2 GB");
+			}
 
-      byte[] data = new byte[length];
-      f.readFully(data);
-      return data;
-    } finally {
-      f.close();
-    }
-  }
+			byte[] data = new byte[length];
+			f.readFully(data);
+			return data;
+		} finally {
+			f.close();
+		}
+	}
 
-  public static String toHexString(byte[] data) {
-    return toHexString(data, 0, data.length);
-  }
+	public static String toHexString(byte[] data) {
+		return toHexString(data, 0, data.length);
+	}
 
-  public static String toHexString(byte[] array, int offset, int length) {
-    char[] buf = new char[length * 2];
+	public static String toHexString(byte[] array, int offset, int length) {
+		char[] buf = new char[length * 2];
 
-    int bufIndex = 0;
-    for (int i = offset; i < offset + length; i++) {
-      byte b = array[i];
-      buf[bufIndex++] = HEX_DIGITS[(b >>> 4) & 0x0F];
-      buf[bufIndex++] = HEX_DIGITS[b & 0x0F];
-    }
+		int bufIndex = 0;
+		for (int i = offset; i < offset + length; i++) {
+			byte b = array[i];
+			buf[bufIndex++] = HEX_DIGITS[(b >>> 4) & 0x0F];
+			buf[bufIndex++] = HEX_DIGITS[b & 0x0F];
+		}
 
-    return new String(buf);
-  }
+		return new String(buf);
+	}
 
-  public static String getFingerprintForSignature(Signature sig) {
-    final MessageDigest md;
-    try {
-      md = MessageDigest.getInstance("SHA1");
-    } catch (NoSuchAlgorithmException e) {
-      return "";
-    }
-    md.update(sig.toByteArray());
-    return toHexString(md.digest());
-  }
+	public static String getFingerprintForSignature(Signature sig) {
+		final MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA1");
+		} catch (NoSuchAlgorithmException e) {
+			return "";
+		}
+		md.update(sig.toByteArray());
+		return toHexString(md.digest());
+	}
 
-  public static String getUserAgent(Context context) {
-    PackageInfo pinfo;
-    try {
-      pinfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-    } catch (NameNotFoundException e) {
-      pinfo = null;
-    }
+	public static String getUserAgent(Context context) {
+		PackageInfo pinfo;
+		try {
+			pinfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+		} catch (NameNotFoundException e) {
+			pinfo = null;
+		}
 
-    final String versionName;
-    final int versionCode;
-    if (pinfo != null) {
-      versionName = pinfo.versionName;
-      versionCode = pinfo.versionCode;
-    } else {
-      versionName = "unknown";
-      versionCode = 0;
-    }
+		final String versionName;
+		final int versionCode;
+		if (pinfo != null) {
+			versionName = pinfo.versionName;
+			versionCode = pinfo.versionCode;
+		} else {
+			versionName = "unknown";
+			versionCode = 0;
+		}
 
-    return new StringBuilder()
-        .append("Kegtab/")
-        .append(versionName)
-        .append('-')
-        .append(versionCode)
-        .append(" (Android ")
-        .append(Build.VERSION.RELEASE)
-        .append("/")
-        .append(Build.VERSION.SDK_INT)
-        .append("; ")
-        .append(Build.MANUFACTURER)
-        .append(" ")
-        .append(Build.MODEL)
-        .append("; ")
-        .append(Build.FINGERPRINT)
-        .append(")")
-        .toString();
-  }
+		return new StringBuilder()
+				.append("Kegtab/")
+				.append(versionName)
+				.append('-')
+				.append(versionCode)
+				.append(" (Android ")
+				.append(Build.VERSION.RELEASE)
+				.append("/")
+				.append(Build.VERSION.SDK_INT)
+				.append("; ")
+				.append(Build.MANUFACTURER)
+				.append(" ")
+				.append(Build.MODEL)
+				.append("; ")
+				.append(Build.FINGERPRINT)
+				.append(")")
+				.toString();
+	}
 
-  public static PackageInfo getOwnPackageInfo(Context context) {
-    PackageManager pm = context.getPackageManager();
-    PackageInfo packageInfo;
-    try {
-      packageInfo = pm.getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES);
-    } catch (NameNotFoundException e) {
-      return null;
-    }
-    return packageInfo;
-  }
+	public static PackageInfo getOwnPackageInfo(Context context) {
+		PackageManager pm = context.getPackageManager();
+		PackageInfo packageInfo;
+		try {
+			packageInfo = pm.getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES);
+		} catch (NameNotFoundException e) {
+			return null;
+		}
+		return packageInfo;
+	}
 
-  public static boolean packageMatchesFingerprint(PackageInfo info, String fingerprint) {
-    if (info.signatures == null || info.signatures.length < 1) {
-      return false;
-    }
-    return getFingerprintForSignature(info.signatures[0]).equals(fingerprint);
-  }
+	public static boolean packageMatchesFingerprint(PackageInfo info, String fingerprint) {
+		if (info.signatures == null || info.signatures.length < 1) {
+			return false;
+		}
+		return getFingerprintForSignature(info.signatures[0]).equals(fingerprint);
+	}
 
-  @SuppressWarnings("deprecation")
-  @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-  public static void setBackground(View view, Drawable background) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      view.setBackground(background);
-    } else {
-      view.setBackgroundDrawable(background);
-    }
-  }
+	@SuppressWarnings("deprecation")
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	public static void setBackground(View view, Drawable background) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			view.setBackground(background);
+		} else {
+			view.setBackgroundDrawable(background);
+		}
+	}
 
-  @SuppressWarnings("deprecation")
-  @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-  public static Notification buildNotification(final Notification.Builder builder) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-      return builder.build();
-    } else {
-      return builder.getNotification();
-    }
-  }
+	@SuppressWarnings("deprecation")
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	public static Notification buildNotification(final Notification.Builder builder) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			return builder.build();
+		} else {
+			return builder.getNotification();
+		}
+	}
 
 }

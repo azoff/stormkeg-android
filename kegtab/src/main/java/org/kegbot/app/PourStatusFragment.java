@@ -31,11 +31,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.squareup.otto.Subscribe;
-
 import org.kegbot.app.event.FlowUpdateEvent;
 import org.kegbot.app.util.ImageDownloader;
 import org.kegbot.app.util.Units;
@@ -50,221 +48,222 @@ import java.util.concurrent.TimeUnit;
 
 public class PourStatusFragment extends ListFragment {
 
-  private static final String TAG = PourStatusFragment.class.getSimpleName();
+	private static final String TAG = PourStatusFragment.class.getSimpleName();
 
-  private static final double VOLUME_COUNTER_INCREMENT_ML = 10;
-  private static final long VOLUME_COUNTER_INCREMENT_DELAY_MILLIS = 20;
+	private static final double VOLUME_COUNTER_INCREMENT_ML = 10;
+	private static final long VOLUME_COUNTER_INCREMENT_DELAY_MILLIS = 20;
 
-  private static final String ARG_TAP_ID = "tap_id";
+	private static final String ARG_TAP_ID = "tap_id";
 
-  private static final int AUTH_DRINKER_REQUEST = 1;
-  /**
-   * After this much inactivity, the "pour automatically ends" dialog is shown.
-   */
-  private static final long IDLE_TOOLTIP_MILLIS = TimeUnit.SECONDS.toMillis(5);
-  private final Handler mHandler = new Handler(Looper.getMainLooper());
-  private double mTargetVolumeMl = 0.0;
-  private double mCurrentVolumeMl = 0.0;
-  private KegbotCore mCore;
-  private ImageDownloader mImageDownloader;
+	private static final int AUTH_DRINKER_REQUEST = 1;
+	/**
+	 * After this much inactivity, the "pour automatically ends" dialog is shown.
+	 */
+	private static final long IDLE_TOOLTIP_MILLIS = TimeUnit.SECONDS.toMillis(5);
+	private final Handler mHandler = new Handler(Looper.getMainLooper());
+	private double mTargetVolumeMl = 0.0;
+	private double mCurrentVolumeMl = 0.0;
+	private KegbotCore mCore;
+	private ImageDownloader mImageDownloader;
 
-  private View mView;
-  private BadgeView mPourVolumeBadge;
-  private TextView mTapTitle;
-  private TextView mTapSubtitle;
-  private TextView mStatusLine;
-  private ImageView mBeerImage;
+	private View mView;
+	private BadgeView mPourVolumeBadge;
+	private TextView mTapTitle;
+	private TextView mTapSubtitle;
+	private TextView mStatusLine;
+	private ImageView mBeerImage;
+	private Flow mFlow = null;	private final Runnable mCounterIncrementRunnable = new Runnable() {
+		@Override
+		public void run() {
+			final double remain = mTargetVolumeMl - mCurrentVolumeMl;
+			if (remain <= 0) {
+				return;
+			}
 
-  private final Runnable mCounterIncrementRunnable = new Runnable() {
-    @Override
-    public void run() {
-      final double remain = mTargetVolumeMl - mCurrentVolumeMl;
-      if (remain <= 0) {
-        return;
-      }
+			mCurrentVolumeMl += Math.min(remain, VOLUME_COUNTER_INCREMENT_ML);
+			setVolumeDisplay(mCurrentVolumeMl);
 
-      mCurrentVolumeMl += Math.min(remain, VOLUME_COUNTER_INCREMENT_ML);
-      setVolumeDisplay(mCurrentVolumeMl);
+			if (mCurrentVolumeMl < mTargetVolumeMl) {
+				mHandler.postDelayed(mCounterIncrementRunnable, VOLUME_COUNTER_INCREMENT_DELAY_MILLIS);
+			}
+		}
+	};
 
-      if (mCurrentVolumeMl < mTargetVolumeMl) {
-        mHandler.postDelayed(mCounterIncrementRunnable, VOLUME_COUNTER_INCREMENT_DELAY_MILLIS);
-      }
-    }
-  };
-  private Flow mFlow = null;
-  private final Runnable mCountdownRunnable = new Runnable() {
-    @Override
-    public void run() {
-      final Flow flow = mFlow;
-      if (flow != null) {
-        if (flow.isFinished()) {
-          mStatusLine.setVisibility(View.VISIBLE);
-          mStatusLine.setText(getString(R.string.pour_status_complete));
-        } else {
-          if (mFlow.getIdleTimeMs() >= IDLE_TOOLTIP_MILLIS) {
-            final long seconds = mFlow.getMsUntilIdle() / 1000;
-            mStatusLine.setText("Pour automatically ends in " + seconds + " second"
-                + ((seconds != 1) ? "s" : "") + ".");
-            mStatusLine.setVisibility(View.VISIBLE);
-          } else {
-            mStatusLine.setVisibility(View.INVISIBLE);
-          }
-        }
-      }
-      mHandler.postDelayed(mCountdownRunnable, 1000);
-    }
-  };
+	public static PourStatusFragment forTap(KegTap tap) {
+		final PourStatusFragment frag = new PourStatusFragment();
+		final Bundle args = new Bundle();
+		args.putInt(ARG_TAP_ID, tap.getId());
+		frag.setArguments(args);
+		return frag;
+	}
 
-  public static PourStatusFragment forTap(KegTap tap) {
-    final PourStatusFragment frag = new PourStatusFragment();
-    final Bundle args = new Bundle();
-    args.putInt(ARG_TAP_ID, tap.getId());
-    frag.setArguments(args);
-    return frag;
-  }
+	private KegTap getTap() {
+		return mCore.getTapManager().getTap(getArguments().getInt(ARG_TAP_ID));
+	}	private final Runnable mCountdownRunnable = new Runnable() {
+		@Override
+		public void run() {
+			final Flow flow = mFlow;
+			if (flow != null) {
+				if (flow.isFinished()) {
+					mStatusLine.setVisibility(View.VISIBLE);
+					mStatusLine.setText(getString(R.string.pour_status_complete));
+				} else {
+					if (mFlow.getIdleTimeMs() >= IDLE_TOOLTIP_MILLIS) {
+						final long seconds = mFlow.getMsUntilIdle() / 1000;
+						mStatusLine.setText("Pour automatically ends in " + seconds + " second"
+								+ ((seconds != 1) ? "s" : "") + ".");
+						mStatusLine.setVisibility(View.VISIBLE);
+					} else {
+						mStatusLine.setVisibility(View.INVISIBLE);
+					}
+				}
+			}
+			mHandler.postDelayed(mCountdownRunnable, 1000);
+		}
+	};
 
-  private KegTap getTap() {
-    return mCore.getTapManager().getTap(getArguments().getInt(ARG_TAP_ID));
-  }
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		mCore = KegbotCore.getInstance(getActivity());
+		mImageDownloader = mCore.getImageDownloader();
+	}
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    mCore = KegbotCore.getInstance(getActivity());
-    mImageDownloader = mCore.getImageDownloader();
-  }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mView = inflater.inflate(R.layout.pour_status_item_layout, container, false);
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    mView = inflater.inflate(R.layout.pour_status_item_layout, container, false);
+		mPourVolumeBadge = (BadgeView) mView.findViewById(R.id.tapStatsBadge1);
+		mPourVolumeBadge.setBadgeValue("0.0");
+		mPourVolumeBadge.setBadgeCaption("Ounces Poured");
 
-    mPourVolumeBadge = (BadgeView) mView.findViewById(R.id.tapStatsBadge1);
-    mPourVolumeBadge.setBadgeValue("0.0");
-    mPourVolumeBadge.setBadgeCaption("Ounces Poured");
+		mTapTitle = (TextView) mView.findViewById(R.id.tapTitle);
+		mTapSubtitle = (TextView) mView.findViewById(R.id.tapSubtitle);
 
-    mTapTitle = (TextView) mView.findViewById(R.id.tapTitle);
-    mTapSubtitle = (TextView) mView.findViewById(R.id.tapSubtitle);
+		mStatusLine = (TextView) mView.findViewById(R.id.tapNotes);
+		mBeerImage = (ImageView) mView.findViewById(R.id.tapImage);
 
-    mStatusLine = (TextView) mView.findViewById(R.id.tapNotes);
-    mBeerImage = (ImageView) mView.findViewById(R.id.tapImage);
+		setVolumeDisplay(0);
 
-    setVolumeDisplay(0);
+		return mView;
+	}
 
-    return mView;
-  }
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+			case AUTH_DRINKER_REQUEST:
+				if (resultCode == Activity.RESULT_OK) {
+					final String username =
+							data.getStringExtra(KegtabCommon.ACTIVITY_AUTH_DRINKER_RESULT_EXTRA_USERNAME);
+					if (!Strings.isNullOrEmpty(username)) {
+						Log.d(TAG, "Authenticating async.");
+						AuthenticationManager am = mCore.getAuthenticationManager();
+						am.authenticateUsernameAsync(username);
+					}
+				}
+				break;
+			default:
+				super.onActivityResult(requestCode, resultCode, data);
+		}
+	}
 
-  @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    switch (requestCode) {
-      case AUTH_DRINKER_REQUEST:
-        if (resultCode == Activity.RESULT_OK) {
-          final String username =
-              data.getStringExtra(KegtabCommon.ACTIVITY_AUTH_DRINKER_RESULT_EXTRA_USERNAME);
-          if (!Strings.isNullOrEmpty(username)) {
-            Log.d(TAG, "Authenticating async.");
-            AuthenticationManager am = mCore.getAuthenticationManager();
-            am.authenticateUsernameAsync(username);
-          }
-        }
-        break;
-      default:
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-  }
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+	}
 
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-  }
+	@Override
+	public void onResume() {
+		super.onResume();
+		applyTapDetail();
+		KegbotCore.getInstance(getActivity()).getBus().register(this);
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    applyTapDetail();
-    KegbotCore.getInstance(getActivity()).getBus().register(this);
+		startCountdown();
+		if (mFlow != null) {
+			updateWithFlow(mFlow);
+		}
+	}
 
-    startCountdown();
-    if (mFlow != null) {
-      updateWithFlow(mFlow);
-    }
-  }
+	@Override
+	public void onPause() {
+		KegbotCore.getInstance(getActivity()).getBus().unregister(this);
+		cancelCountdown();
+		super.onPause();
+	}
 
-  @Override
-  public void onPause() {
-    KegbotCore.getInstance(getActivity()).getBus().unregister(this);
-    cancelCountdown();
-    super.onPause();
-  }
+	@Subscribe
+	public void onFlowUpdate(FlowUpdateEvent event) {
+		final Flow flow = event.getFlow();
+		final KegTap tap = getTap();
+		if (tap != null && tap.getId() == flow.getTap().getId()) {
+			if (!flow.isFinished()) {
+				updateWithFlow(flow);
+			}
+		}
+	}
 
-  @Subscribe
-  public void onFlowUpdate(FlowUpdateEvent event) {
-    final Flow flow = event.getFlow();
-    final KegTap tap = getTap();
-    if (tap != null && tap.getId() == flow.getTap().getId()) {
-      if (!flow.isFinished()) {
-        updateWithFlow(flow);
-      }
-    }
-  }
+	private void setVolumeDisplay(double volumeMl) {
+		final Pair<String, String> qty = Units.localizeWithoutScaling(
+				mCore.getConfiguration(), volumeMl);
+		mPourVolumeBadge.setBadgeValue(qty.first);
+		mPourVolumeBadge.setBadgeCaption(Units.capitalizeUnits(qty.second) + " Poured");
+	}
 
-  private void setVolumeDisplay(double volumeMl) {
-    final Pair<String, String> qty = Units.localizeWithoutScaling(
-        mCore.getConfiguration(), volumeMl);
-    mPourVolumeBadge.setBadgeValue(qty.first);
-    mPourVolumeBadge.setBadgeCaption(Units.capitalizeUnits(qty.second) + " Poured");
-  }
+	private void applyTapDetail() {
+		final KegTap tap = getTap();
+		mBeerImage.setImageResource(R.drawable.kegbot_unknown_square_2);
 
-  private void applyTapDetail() {
-    final KegTap tap = getTap();
-    mBeerImage.setImageResource(R.drawable.kegbot_unknown_square_2);
+		final Keg keg = tap.getCurrentKeg();
 
-    final Keg keg = tap.getCurrentKeg();
+		if (keg != null) {
+			final String beerName = keg.getBeverage().getName();
 
-    if (keg != null) {
-      final String beerName = keg.getBeverage().getName();
+			// Set beer name.
+			if (!Strings.isNullOrEmpty(beerName) && mTapTitle != null) {
+				mTapTitle.setText(beerName);
+			}
 
-      // Set beer name.
-      if (!Strings.isNullOrEmpty(beerName) && mTapTitle != null) {
-        mTapTitle.setText(beerName);
-      }
+			// Set beer image.
+			if (keg.getBeverage().hasPicture()) {
+				mImageDownloader.download(keg.getBeverage().getPicture().getUrl(), mBeerImage);
+			}
+			mTapSubtitle.setText(tap.getName());
+		} else {
+			mTapTitle.setText(tap.getName());
+		}
+	}
 
-      // Set beer image.
-      if (keg.getBeverage().hasPicture()) {
-        mImageDownloader.download(keg.getBeverage().getPicture().getUrl(), mBeerImage);
-      }
-      mTapSubtitle.setText(tap.getName());
-    } else {
-      mTapTitle.setText(tap.getName());
-    }
-  }
+	public void updateWithFlow(final Flow flow) {
+		Preconditions.checkNotNull(flow, "null flow given to updateWithFlow()");
+		mFlow = flow;
 
-  public void updateWithFlow(final Flow flow) {
-    Preconditions.checkNotNull(flow, "null flow given to updateWithFlow()");
-    mFlow = flow;
+		if (mFlow.isFinished()) {
+			return;
+		}
 
-    if (mFlow.isFinished()) {
-      return;
-    }
+		if (mView == null) {
+			return;
+		}
 
-    if (mView == null) {
-      return;
-    }
+		// Set volume portion.
+		mTargetVolumeMl = flow.getVolumeMl();
+		if (mCurrentVolumeMl < mTargetVolumeMl) {
+			mHandler.removeCallbacks(mCounterIncrementRunnable);
+			mHandler.post(mCounterIncrementRunnable);
+		}
+	}
 
-    // Set volume portion.
-    mTargetVolumeMl = flow.getVolumeMl();
-    if (mCurrentVolumeMl < mTargetVolumeMl) {
-      mHandler.removeCallbacks(mCounterIncrementRunnable);
-      mHandler.post(mCounterIncrementRunnable);
-    }
-  }
+	private void cancelCountdown() {
+		mHandler.removeCallbacks(mCountdownRunnable);
+	}
 
-  private void cancelCountdown() {
-    mHandler.removeCallbacks(mCountdownRunnable);
-  }
+	private void startCountdown() {
+		cancelCountdown();
+		mHandler.post(mCountdownRunnable);
+	}
 
-  private void startCountdown() {
-    cancelCountdown();
-    mHandler.post(mCountdownRunnable);
-  }
+
+
+
 
 }

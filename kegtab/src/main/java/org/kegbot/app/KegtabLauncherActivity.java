@@ -22,7 +22,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.app.setup.SetupActivity;
 
@@ -34,34 +33,34 @@ import org.kegbot.app.setup.SetupActivity;
  */
 public class KegtabLauncherActivity extends Activity {
 
-  private static final String TAG = KegtabLauncherActivity.class.getSimpleName();
+	private static final String TAG = KegtabLauncherActivity.class.getSimpleName();
 
-  private static final int REQUEST_START_SETUP = 100;
+	private static final int REQUEST_START_SETUP = 100;
 
-  AppConfiguration mConfig;
+	AppConfiguration mConfig;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    mConfig = ((KegbotApplication) getApplication()).getConfig();
-  }
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		mConfig = ((KegbotApplication) getApplication()).getConfig();
+	}
 
-  @Override
-  protected void onStart() {
-    super.onStart();
-  }
+	@Override
+	protected void onStart() {
+		super.onStart();
+	}
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-    if (isFinishing()) {
-      return;
-    }
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (isFinishing()) {
+			return;
+		}
 
-    final int setupVersion = mConfig.getSetupVersion();
-    if (setupVersion < SetupActivity.SETUP_VERSION) {
-      Log.d(TAG, "Setup is not complete, version=" + setupVersion + "current="
-          + SetupActivity.SETUP_VERSION);
+		final int setupVersion = mConfig.getSetupVersion();
+		if (setupVersion < SetupActivity.SETUP_VERSION) {
+			Log.d(TAG, "Setup is not complete, version=" + setupVersion + "current="
+					+ SetupActivity.SETUP_VERSION);
 
 //      try {
 //        if (setupVersion == 0) {
@@ -79,37 +78,37 @@ public class KegtabLauncherActivity extends Activity {
 //        // Ignore any stupid analytics crashes.
 //      }
 
-      final Intent setupIntent = new Intent(this, SetupActivity.class);
-      if (setupVersion > 0) {
-        setupIntent.putExtra(SetupActivity.EXTRA_REASON, SetupActivity.EXTRA_REASON_UPGRADE);
-      }
-      startActivityForResult(setupIntent, REQUEST_START_SETUP);
-    } else {
-      Log.d(TAG, "Starting main activity");
-      final Intent mainIntent = new Intent(this, HomeActivity.class);
-      mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-      startActivity(mainIntent);
-      finish();
-    }
-  }
+			final Intent setupIntent = new Intent(this, SetupActivity.class);
+			if (setupVersion > 0) {
+				setupIntent.putExtra(SetupActivity.EXTRA_REASON, SetupActivity.EXTRA_REASON_UPGRADE);
+			}
+			startActivityForResult(setupIntent, REQUEST_START_SETUP);
+		} else {
+			Log.d(TAG, "Starting main activity");
+			final Intent mainIntent = new Intent(this, HomeActivity.class);
+			mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(mainIntent);
+			finish();
+		}
+	}
 
-  @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    switch (requestCode) {
-      case REQUEST_START_SETUP:
-        if (resultCode == RESULT_OK) {
-          Log.i(TAG, "Setup completed successfully, returning to main.");
-          return;
-        } else {
-          Log.i(TAG, "Setup aborted, finishing.");
-          finish();
-          return;
-        }
-      default:
-        Log.w(TAG, "Unknown requestCode: " + requestCode);
-        finish();
-        return;
-    }
-  }
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+			case REQUEST_START_SETUP:
+				if (resultCode == RESULT_OK) {
+					Log.i(TAG, "Setup completed successfully, returning to main.");
+					return;
+				} else {
+					Log.i(TAG, "Setup aborted, finishing.");
+					finish();
+					return;
+				}
+			default:
+				Log.w(TAG, "Unknown requestCode: " + requestCode);
+				finish();
+				return;
+		}
+	}
 
 }

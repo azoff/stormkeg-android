@@ -23,23 +23,23 @@
               android:gravity="top|left"
               android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/setupTitleText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dip"
-        android:text="Welcome!"
-        android:textSize="32dip"
-        android:textStyle="bold">
+	<TextView
+			android:id="@+id/setupTitleText"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="24dip"
+			android:text="Welcome!"
+			android:textSize="32dip"
+			android:textStyle="bold">
 
-    </TextView>
+	</TextView>
 
-    <TextView
-        android:id="@+id/setupDescriptionText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Blah blah blah."
-        android:textSize="24dip">
-    </TextView>
+	<TextView
+			android:id="@+id/setupDescriptionText"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="Blah blah blah."
+			android:textSize="24dip">
+	</TextView>
 
 </LinearLayout>

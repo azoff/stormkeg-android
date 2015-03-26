@@ -23,113 +23,113 @@
                 android:layout_height="match_parent"
                 android:padding="32dip">
 
-    <TextView
-        android:id="@+id/new_drinker_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:text="New Drinker"
-        android:textSize="32sp"
-        android:textStyle="bold"/>
+	<TextView
+			android:id="@+id/new_drinker_title"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:layout_centerHorizontal="true"
+			android:text="New Drinker"
+			android:textSize="32sp"
+			android:textStyle="bold"/>
 
-    <TextView
-        android:id="@+id/new_drinker_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/new_drinker_title"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="32dip"
-        android:text="@string/register_email_description"
-        android:textSize="24sp"/>
+	<TextView
+			android:id="@+id/new_drinker_subtitle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/new_drinker_title"
+			android:layout_centerHorizontal="true"
+			android:layout_marginBottom="32dip"
+			android:text="@string/register_email_description"
+			android:textSize="24sp"/>
 
-    <ViewFlipper
-        android:id="@+id/new_drinker_flipper"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/new_drinker_subtitle">
+	<ViewFlipper
+			android:id="@+id/new_drinker_flipper"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_below="@+id/new_drinker_subtitle">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center"
-            android:layout_marginBottom="32dip"
-            android:background="@drawable/shape_rounded_rect"
-            android:orientation="vertical">
+		<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="top|center"
+				android:layout_marginBottom="32dip"
+				android:background="@drawable/shape_rounded_rect"
+				android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="E-Mail Address"
-                android:textSize="24dip"
-                android:textStyle="bold"/>
+			<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="E-Mail Address"
+					android:textSize="24dip"
+					android:textStyle="bold"/>
 
-            <EditText
-                android:id="@+id/email"
-                android:layout_width="384dip"
-                android:layout_height="wrap_content"
-                android:hint="user@example.com"
-                android:imeOptions="actionNext"
-                android:inputType="textEmailAddress"/>
-        </LinearLayout>
+			<EditText
+					android:id="@+id/email"
+					android:layout_width="384dip"
+					android:layout_height="wrap_content"
+					android:hint="user@example.com"
+					android:imeOptions="actionNext"
+					android:inputType="textEmailAddress"/>
+		</LinearLayout>
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center"
-            android:layout_marginBottom="32dip"
-            android:background="@drawable/shape_rounded_rect"
-            android:orientation="vertical">
+		<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="top|center"
+				android:layout_marginBottom="32dip"
+				android:background="@drawable/shape_rounded_rect"
+				android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Username"
-                android:textSize="24dip"
-                android:textStyle="bold"/>
+			<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="Username"
+					android:textSize="24dip"
+					android:textStyle="bold"/>
 
-            <EditText
-                android:id="@+id/username"
-                android:layout_width="384dip"
-                android:layout_height="wrap_content"
-                android:hint="Public, permanent. Choose wisely!"
-                android:imeOptions="actionNext"
-                android:inputType="textEmailAddress"/>
+			<EditText
+					android:id="@+id/username"
+					android:layout_width="384dip"
+					android:layout_height="wrap_content"
+					android:hint="Public, permanent. Choose wisely!"
+					android:imeOptions="actionNext"
+					android:inputType="textEmailAddress"/>
 
-            <CheckBox
-                android:id="@+id/keghubAgreeTerms"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/register_agree_terms_text"/>
+			<CheckBox
+					android:id="@+id/keghubAgreeTerms"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/register_agree_terms_text"/>
 
-        </LinearLayout>
+		</LinearLayout>
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center"
-            android:layout_marginBottom="32dip"
-            android:background="@drawable/shape_rounded_rect"
-            android:gravity="center"
-            android:orientation="horizontal">
+		<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="top|center"
+				android:layout_marginBottom="32dip"
+				android:background="@drawable/shape_rounded_rect"
+				android:gravity="center"
+				android:orientation="horizontal">
 
-            <fragment
-                android:id="@+id/camera"
-                class="org.kegbot.app.camera.CameraFragment"
-                android:layout_width="320dip"
-                android:layout_height="wrap_content">
+			<fragment
+					android:id="@+id/camera"
+					class="org.kegbot.app.camera.CameraFragment"
+					android:layout_width="320dip"
+					android:layout_height="wrap_content">
 
-                <!-- Preview: layout=@layout/camera_fragment_layout -->
-            </fragment>
+				<!-- Preview: layout=@layout/camera_fragment_layout -->
+			</fragment>
 
-            <Button
-                android:id="@+id/submitButton"
-                style="@style/mediumButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="32dp"
-                android:text="Register Me!"/>
-        </LinearLayout>
-    </ViewFlipper>
+			<Button
+					android:id="@+id/submitButton"
+					style="@style/mediumButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="32dp"
+					android:text="Register Me!"/>
+		</LinearLayout>
+	</ViewFlipper>
 
 </RelativeLayout>
