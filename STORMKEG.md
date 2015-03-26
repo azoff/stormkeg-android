@@ -10,8 +10,7 @@ If matching editors is important to you, StormKeg was built using [Android Studi
 out of downloading the latest Android libraries, which will be necessary to build the application locally.
 
 Of course, to work with Stormpath, you'll need to [create an account][5] and generate an API key using the instructions from 
-[The Java Quickstart][2]. You can store the `apiKey.json` file in the `assets` folder found in `kegtab/src/main`. The file
-will be ignored by version control, so don't worry about committing it.
+[The Java Quickstart][2]. You can store the `apiKey.json` file locally for now; we'll reference it later in the process.
 
 ## Ensure The App Builds
 Before we can make any changes, we need to make sure the app can be built. Importing the existing project gets you most of the way 
@@ -32,12 +31,129 @@ StormKeg references this project as a submodule, and it should exist after you c
 dependencies, you might need to update your git submodules.
 
 StormKeg also removes references to [Crashlytics][8], which is a paid service and should not hold sway over whether or not the
-app builds. Should you be a Crashlytics user, feel free to add it back into the build process.
+app builds. Should you be a Crashlytics user, feel free to add it back into the build process. Now that the app compiles, we're
+free to start hacking away!
 
-## Incorporating The Java Client
+## Inserting Stormpath As User Authority
+Now, we need to figure out how to inject Stormpath into the app as our user authority. Luckily, there already seems to
+be a file called `Backend.java` which describes the app's interface for data storage. By leveraging this interface, we could
+inject the the Stormpath API right into the regular execution of the program!
 
-To communicate with the Stormpath REST API, we can leverage the existing Java instrumentation. Namely, we'll be using the 
-`stormpath-sdk-api` and the `stormpath-sdk-httpclient` artifacts. Before we can do that, we
+We create a new class `StormpathBackendProxy` which implements the `Backend` interface. For now, it'll be empty, but let's stub 
+out a constructor that shows how we'd like to use our proxy:
+
+```java
+public class StormpathBackendProxy implements Backend {
+
+	private Client mClient;
+	private Backend mBackend;
+
+	public StormpathBackendProxy(Client client, Backend backend) {
+		mClient = client;
+		mBackend = backend;
+	}
+
+	public static StormpathBackendProxy fromContext(Context context, Backend backend) {
+		final AppConfiguration config = KegbotApplication.get(context).getConfig();
+		return new StormpathBackendProxy(null, backend); // TODO: instantiate Stormpath client from config
+	}
+}
+```
+
+The idea here is simple: wrap our proxy around an existing `Backend`, and use the app's configuration to create our client
+connection to the Stormpath API.
+
+## Extending The App Configuration
+In order to allow us to connect to the Stormpath API, we'll need to extend the application's configuration to allow the user to provide an app id and secret for the service (i.e. the contents of `apiKey.json`). Here are the necessary configuration changes required to support
+authenticating against the Stormpath API:
+
+```java
+
+// ... ConfigKey.java
+enum ConfigKey {
+
+	STORMPATH_ID(""),
+	STORMPATH_SECRET(""),
+
+	// ... other keys
+
+}
+
+// ... AppConfiguration.java
+enum AppConfiguration {
+
+	public String getStormpathId() {
+		return get(ConfigKey.STORMPATH_ID);
+	}
+
+	public void setStormpathId(String value) {
+		set(ConfigKey.STORMPATH_ID, value);
+	}
+
+	public String getStormpathSecret() {
+		return get(ConfigKey.STORMPATH_SECRET);
+	}
+
+	public void setStormpathSecret(String value) {
+		set(ConfigKey.STORMPATH_SECRET, value);
+	}
+
+	public boolean isStormpathAvailable() {
+		String id = getStormpathId();
+		String secret = getStormpathSecret();
+		return id != null && !id.trim().equals("") &&
+				secret != null && !secret.trim().equals("");
+	}
+
+	// ... other methods
+
+}
+```
+
+Now that the configuration is extended, we can use our proxy to hijack the `Backend` when it is instantiated.
+
+```java
+
+// KegbotCore.java
+private KegbotCore(Context context) {
+
+	// ... backend = local SQLLite DB - or - Remote API
+
+	if (mConfig.isStormpathAvailable()) {
+		Log.d(TAG, "Using stormpath proxy.");
+		mBackend = StormpathBackendProxy.fromContext(mContext, backend);
+	} else {
+		mBackend = backend;
+	}
+
+}
+
+We can also finish up the `fromContext` method we created for our proxy:
+
+```java
+
+// StormpathBackendProxy.java
+public static StormpathBackendProxy fromContext(Context context, Backend backend) {
+	final AppConfiguration config = KegbotApplication.get(context).getConfig();
+	ApiKey key = ApiKeys.builder().setId(config.getStormpathId()).setSecret(config.getStormpathSecret()).build();
+	Client client = Clients.builder().setApiKey(key).build();
+	return new StormpathBackendProxy(client, backend);
+}
+
+```
+
+Great. Now our app's configuration can support the concepts necessary to connect to the Stormpath API, and we can
+can inject our proxy in between the app and it's backend.
+
+## Using The Setup to Provide Credentials
+Even though the app can now support Stormpath credentials, the credentials still need to come from somewhere; 
+that's where the `SetupActivity` comes in. The Kegbot App runs an interactive setup activity the first time the app 
+is launched on a tablet. This activity runs through a series of steps, eventually filling out the app's configuration.
+By adding a new step for Stormpath, we can provide the necessisary credentials to connect to the API. 
+
+<!-- To communicate with the Stormpath REST API, we can leverage the existing Java instrumentation. Namely, we'll be using 
+[The Stormpath Java SDK][2], and we need to instantiate it in the application. The idiomatic way to do this is in Java is 
+via a lazy-loaded, app-wide singleton. Luckily, the app already has one: `KegbotCore.java`. -->
 
 [1]:https://kegbot.org/
 [2]:http://docs.stormpath.com/java/quickstart/

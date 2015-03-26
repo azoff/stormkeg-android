@@ -31,6 +31,7 @@ import com.google.common.collect.Sets;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.otto.ThreadEnforcer;
+import com.stormpath.kegbot.StormpathBackendProxy;
 import org.kegbot.api.KegbotApiImpl;
 import org.kegbot.app.AuthenticatingActivity;
 import org.kegbot.app.KegbotApplication;
@@ -103,12 +104,20 @@ public class KegbotCore {
 		mConfig = ((KegbotApplication) mContext.getApplicationContext()).getConfig();
 		mSharedPreferences = ((KegbotApplication) mContext.getApplicationContext()).getSharedPreferences();
 
+		Backend backend;
 		if (mConfig.isLocalBackend()) {
 			Log.d(TAG, "Using local backend.");
-			mBackend = new LocalBackend();
+			backend = new LocalBackend();
 		} else {
 			Log.d(TAG, "Using server backend.");
-			mBackend = KegbotApiImpl.fromContext(mContext);
+			backend = KegbotApiImpl.fromContext(mContext);
+		}
+
+		if (mConfig.isStormpathAvailable()) {
+			Log.d(TAG, "Using stormpath proxy.");
+			mBackend = StormpathBackendProxy.fromContext(mContext, backend);
+		} else {
+			mBackend = backend;
 		}
 
 		mImageDownloader = new ImageDownloader(context, mConfig.getKegbotUrl());

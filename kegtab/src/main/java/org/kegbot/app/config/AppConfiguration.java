@@ -256,6 +256,29 @@ public class AppConfiguration {
 		set(ConfigKey.REGISTRATION_ID, value);
 	}
 
+	public String getStormpathId() {
+		return get(ConfigKey.STORMPATH_ID);
+	}
+
+	public void setStormpathId(String value) {
+		set(ConfigKey.STORMPATH_ID, value);
+	}
+
+	public String getStormpathSecret() {
+		return get(ConfigKey.STORMPATH_SECRET);
+	}
+
+	public void setStormpathSecret(String value) {
+		set(ConfigKey.STORMPATH_SECRET, value);
+	}
+
+	public boolean isStormpathAvailable() {
+		String id = getStormpathId();
+		String secret = getStormpathSecret();
+		return id != null && !id.trim().equals("") &&
+				secret != null && !secret.trim().equals("");
+	}
+
 	public boolean getUpdateAvailable() {
 		return getBoolean(ConfigKey.UPDATE_AVAILABLE);
 	}

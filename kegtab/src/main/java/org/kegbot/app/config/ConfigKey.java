@@ -27,6 +27,10 @@ import static org.kegbot.app.config.AppConfiguration.TRUE;
  * @author mike wakerly (opensource@hoho.com)
  */
 enum ConfigKey {
+
+	STORMPATH_ID(""),
+	STORMPATH_SECRET(""),
+
 	SETUP_VERSION("0"),
 	LOCAL_BACKEND(FALSE),
 
