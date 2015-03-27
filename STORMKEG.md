@@ -73,6 +73,7 @@ authenticating against the Stormpath API:
 enum ConfigKey {
 
 	STORMPATH_ID(""),
+	STORMPATH_APP(""),
 	STORMPATH_SECRET(""),
 
 	// ... other keys
@@ -98,11 +99,19 @@ enum AppConfiguration {
 		set(ConfigKey.STORMPATH_SECRET, value);
 	}
 
+	public String getStormpathAppName() {
+		return get(ConfigKey.STORMPATH_APP);
+	}
+
+	public void setStormpathAppName(String value) {
+		set(ConfigKey.STORMPATH_APP, value);
+	}
+
 	public boolean isStormpathAvailable() {
-		String id = getStormpathId();
-		String secret = getStormpathSecret();
-		return id != null && !id.trim().equals("") &&
-				secret != null && !secret.trim().equals("");
+		final String id = getStormpathId();
+		final String secret = getStormpathSecret();
+		final String name = getStormpathAppName();
+		return !Strings.isNullOrEmpty(id) && !Strings.isNullOrEmpty(secret) && !Strings.isNullOrEmpty(name);
 	}
 
 	// ... other methods
@@ -128,6 +137,8 @@ private KegbotCore(Context context) {
 
 }
 
+```
+
 We can also finish up the `fromContext` method we created for our proxy:
 
 ```java
@@ -149,7 +160,24 @@ can inject our proxy in between the app and it's backend.
 Even though the app can now support Stormpath credentials, the credentials still need to come from somewhere; 
 that's where the `SetupActivity` comes in. The Kegbot App runs an interactive setup activity the first time the app 
 is launched on a tablet. This activity runs through a series of steps, eventually filling out the app's configuration.
-By adding a new step for Stormpath, we can provide the necessisary credentials to connect to the API. 
+By adding a new step for Stormpath, we can provide the necessisary credentials to connect to the API. To begin, we'll
+need to add the strings we use to describe the fields to the user; this is done via the `strings.xml` file:
+
+```xml
+	
+<!-- ... other strings ... -->
+<string name="stormpath_caption">If you wish to use Stormpath as an authentication authority, please enter your credentials below.</string>
+<string name="stormpath_app_title">Stormpath Application Name</string>
+<string name="stormpath_app_description">The name of your Stormpath Application</string>
+<string name="stormpath_id_title">Stormpath API ID</string>
+<string name="stormpath_id_description">The ID of the API Key for your Stormpath account</string>
+<string name="stormpath_secret_title">Stormpath API Secret</string>
+<string name="stormpath_secret_description">The secrect component of your Stormpath API Key</string>
+
+```
+
+We can then create a setup fragment, with the intention to add it to the step flow. You can find the fragment in
+the `setup_stormpath_fragment.xml` resource file.
 
 <!-- To communicate with the Stormpath REST API, we can leverage the existing Java instrumentation. Namely, we'll be using 
 [The Stormpath Java SDK][2], and we need to instantiate it in the application. The idiomatic way to do this is in Java is 

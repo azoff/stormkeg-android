@@ -21,21 +21,20 @@ package org.kegbot.app.setup;
 
 import android.app.Fragment;
 import com.google.common.base.Strings;
-import org.kegbot.app.KegbotApplication;
 import org.kegbot.app.R;
 
-public class SetupSelectBackendStep extends SetupStep {
+public class SetupStormpathStep extends SetupStep {
 
-	private final SetupSelectBackendFragment mControlsFragment = new SetupSelectBackendFragment();
+	private final SetupStormpathFragment mControlsFragment = new SetupStormpathFragment();
 
-	public SetupSelectBackendStep(SetupActivity.SetupState state) {
+	public SetupStormpathStep(SetupActivity.SetupState state) {
 		super(state);
 	}
 
 	@Override
 	public Fragment getContentFragment() {
-		return SetupTextFragment.withText(R.string.setup_select_backend_title,
-				R.string.setup_select_backend_description);
+		return SetupTextFragment.withText(R.string.stormpath_title,
+				R.string.stormpath_caption);
 	}
 
 	@Override
@@ -47,12 +46,10 @@ public class SetupSelectBackendStep extends SetupStep {
 	public SetupStep advance() throws SetupValidationException {
 		final String error = mControlsFragment.validate();
 		if (!Strings.isNullOrEmpty(error)) {
+			mControlsFragment.onValidationFailed();
 			throw new SetupValidationException(error);
 		}
-		if (KegbotApplication.get(mControlsFragment.getActivity()).getConfig().isLocalBackend()) {
-			return new SetupStormpathStep(mState);
-		} else {
-			return new SetupKegbotUrlStep(mState);
-		}
+
+		return new SetupManagerPinStep(mState);
 	}
 }

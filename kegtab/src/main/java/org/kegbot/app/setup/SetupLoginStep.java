@@ -50,6 +50,6 @@ public class SetupLoginStep extends SetupStep {
 			throw new SetupValidationException(error);
 		}
 
-		return new SetupManagerPinStep(mState);
+		return new SetupStormpathStep(mState);
 	}
 }

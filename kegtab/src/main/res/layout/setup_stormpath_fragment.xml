@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2014 Bevbot LLC <info@bevbot.com>
+  ~
+  ~ This file is part of the Kegtab package from the Kegbot project. For
+  ~ more information on Kegtab or Kegbot, see <http://kegbot.org/>.
+  ~
+  ~ Kegtab is free software: you can redistribute it and/or modify it under
+  ~ the terms of the GNU General Public License as published by the Free
+  ~ Software Foundation, version 2.
+  ~
+  ~ Kegtab is distributed in the hope that it will be useful, but WITHOUT
+  ~ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  ~ FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+  ~ more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along
+  ~ with Kegtab. If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:gravity="center|left"
+              android:orientation="vertical"
+              android:background="@drawable/shape_rounded_rect">
+
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stormpath_app_title"
+			android:textSize="24sp"
+			android:textStyle="bold"/>
+
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stormpath_app_description"
+			android:textColor="@android:color/darker_gray"
+			android:textSize="18sp"/>
+
+	<EditText
+			android:id="@+id/stormpathAppName"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="32dip"/>
+
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stormpath_id_title"
+			android:textSize="24sp"
+			android:textStyle="bold"/>
+
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stormpath_id_description"
+			android:textColor="@android:color/darker_gray"
+			android:textSize="18sp"/>
+
+	<EditText
+			android:id="@+id/stormpathId"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="32dip"/>
+
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stormpath_secret_title"
+			android:textSize="24sp"
+			android:textStyle="bold"/>
+
+	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stormpath_secret_description"
+			android:textColor="@android:color/darker_gray"
+			android:textSize="18sp"/>
+
+	<EditText
+			android:inputType="textVisiblePassword"
+			android:id="@+id/stormpathSecret"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="32dip"/>
+
+</LinearLayout>

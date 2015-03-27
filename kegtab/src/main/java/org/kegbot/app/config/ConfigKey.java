@@ -29,6 +29,7 @@ import static org.kegbot.app.config.AppConfiguration.TRUE;
 enum ConfigKey {
 
 	STORMPATH_ID(""),
+	STORMPATH_APP(""),
 	STORMPATH_SECRET(""),
 
 	SETUP_VERSION("0"),

@@ -215,6 +215,6 @@ public class SetupPairStep extends SetupStep {
 	@Override
 	public SetupStep advance() throws SetupValidationException {
 		final AppConfiguration config = KegbotApplication.get(mContentFragment.getActivity()).getConfig();
-		return new SetupManagerPinStep(mState);
+		return new SetupStormpathStep(mState);
 	}
 }

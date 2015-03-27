@@ -3,6 +3,8 @@ package com.stormpath.kegbot;
 import android.content.Context;
 import com.stormpath.sdk.api.ApiKey;
 import com.stormpath.sdk.api.ApiKeys;
+import com.stormpath.sdk.application.Application;
+import com.stormpath.sdk.application.Applications;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.client.Clients;
 import org.codehaus.jackson.JsonNode;
@@ -24,9 +26,11 @@ import java.util.List;
 public class StormpathBackendProxy implements Backend {
 
 	private Client mClient;
+	private Application mApp;
 	private Backend mBackend;
 
-	public StormpathBackendProxy(Client client, Backend backend) {
+	public StormpathBackendProxy(Client client, Application app, Backend backend) {
+		mApp = app;
 		mClient = client;
 		mBackend = backend;
 	}
@@ -35,7 +39,17 @@ public class StormpathBackendProxy implements Backend {
 		final AppConfiguration config = KegbotApplication.get(context).getConfig();
 		ApiKey key = ApiKeys.builder().setId(config.getStormpathId()).setSecret(config.getStormpathSecret()).build();
 		Client client = Clients.builder().setApiKey(key).build();
-		return new StormpathBackendProxy(client, backend);
+		String appName = config.getStormpathAppName();
+		Application app = client.getApplications(Applications.where(Applications.name().eqIgnoreCase(appName))).iterator().next();
+		return new StormpathBackendProxy(client, app, backend);
+	}
+
+	public Application getStormpathApplication() {
+		return mApp;
+	}
+
+	public static StormpathBackendProxy fromContext(Context context) {
+		return fromContext(context, null);
 	}
 
 	@Override

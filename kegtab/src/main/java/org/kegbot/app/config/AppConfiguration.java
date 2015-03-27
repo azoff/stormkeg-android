@@ -18,6 +18,8 @@
  */
 package org.kegbot.app.config;
 
+import com.google.common.base.Strings;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -272,11 +274,19 @@ public class AppConfiguration {
 		set(ConfigKey.STORMPATH_SECRET, value);
 	}
 
+	public String getStormpathAppName() {
+		return get(ConfigKey.STORMPATH_APP);
+	}
+
+	public void setStormpathAppName(String value) {
+		set(ConfigKey.STORMPATH_APP, value);
+	}
+
 	public boolean isStormpathAvailable() {
-		String id = getStormpathId();
-		String secret = getStormpathSecret();
-		return id != null && !id.trim().equals("") &&
-				secret != null && !secret.trim().equals("");
+		final String id = getStormpathId();
+		final String secret = getStormpathSecret();
+		final String name = getStormpathAppName();
+		return !Strings.isNullOrEmpty(id) && !Strings.isNullOrEmpty(secret) && !Strings.isNullOrEmpty(name);
 	}
 
 	public boolean getUpdateAvailable() {
