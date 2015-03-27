@@ -156,7 +156,7 @@ public static StormpathBackendProxy fromContext(Context context, Backend backend
 Great. Now our app's configuration can support the concepts necessary to connect to the Stormpath API, and we can
 can inject our proxy in between the app and it's backend.
 
-## Using The Setup to Provide Credentials
+## Extending The Setup to Provide Credentials
 Even though the app can now support Stormpath credentials, the credentials still need to come from somewhere; 
 that's where the `SetupActivity` comes in. The Kegbot App runs an interactive setup activity the first time the app 
 is launched on a tablet. This activity runs through a series of steps, eventually filling out the app's configuration.
