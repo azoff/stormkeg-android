@@ -1,24 +1,30 @@
 package com.stormpath.kegbot;
 
 import android.content.Context;
+import com.google.common.io.Files;
+import com.stormpath.sdk.account.*;
 import com.stormpath.sdk.api.ApiKey;
 import com.stormpath.sdk.api.ApiKeys;
 import com.stormpath.sdk.application.Application;
 import com.stormpath.sdk.application.Applications;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.client.Clients;
+import com.stormpath.sdk.directory.CustomData;
+import com.stormpath.sdk.resource.ResourceException;
 import org.codehaus.jackson.JsonNode;
 import org.kegbot.app.KegbotApplication;
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.app.util.TimeSeries;
 import org.kegbot.backend.Backend;
 import org.kegbot.backend.BackendException;
+import org.kegbot.backend.LocalBackend;
 import org.kegbot.proto.Api;
 import org.kegbot.proto.Models;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created by Azoff on 3/25/15.
@@ -37,10 +43,10 @@ public class StormpathBackendProxy implements Backend {
 
 	public static StormpathBackendProxy fromContext(Context context, Backend backend) {
 		final AppConfiguration config = KegbotApplication.get(context).getConfig();
-		ApiKey key = ApiKeys.builder().setId(config.getStormpathId()).setSecret(config.getStormpathSecret()).build();
-		Client client = Clients.builder().setApiKey(key).build();
-		String appName = config.getStormpathAppName();
-		Application app = client.getApplications(Applications.where(Applications.name().eqIgnoreCase(appName))).iterator().next();
+		final ApiKey key = ApiKeys.builder().setId(config.getStormpathId()).setSecret(config.getStormpathSecret()).build();
+		final Client client = Clients.builder().setApiKey(key).build();
+		final String appName = config.getStormpathAppName();
+		final Application app = client.getApplications(Applications.where(Applications.name().eqIgnoreCase(appName))).iterator().next();
 		return new StormpathBackendProxy(client, app, backend);
 	}
 
@@ -70,11 +76,6 @@ public class StormpathBackendProxy implements Backend {
 	@Override
 	public Models.Image attachPictureToDrink(int drinkId, File picture) throws BackendException {
 		return mBackend.attachPictureToDrink(drinkId, picture);
-	}
-
-	@Override
-	public Models.User createUser(String username, String email, String password, String imagePath) throws BackendException {
-		return mBackend.createUser(username, email, password, imagePath);
 	}
 
 	@Override
@@ -128,13 +129,86 @@ public class StormpathBackendProxy implements Backend {
 	}
 
 	@Override
+	public Models.User createUser(String username, String email, String password, String imagePath) throws BackendException {
+
+		Account account = mClient.instantiate(Account.class);
+
+		account.setEmail(email);
+		account.setUsername(username);
+		account.setPassword(password);
+
+		CustomData data = account.getCustomData();
+		Date date = new Date();
+		data.put(StormpathCustomDataKey.DATE_JOINED.name(), date.toString());
+
+		File file = new File(imagePath);
+		if (file.exists()) {
+			try {
+				data.put(StormpathCustomDataKey.PROFILE_IMAGE.name(), Files.toByteArray(file));
+			} catch (IOException ex) {
+				throw new BackendException("unable to read user image file", ex);
+			}
+		}
+
+		// save the account to stormpath
+		try {
+			account = mApp.createAccount(account);
+		} catch (ResourceException ex) {
+			throw new StormpathApiException("unable to create account", ex);
+		}
+
+		// save the account to the backend
+		Models.User.Builder builder = Models.User.newBuilder();
+		if (!(mBackend instanceof LocalBackend)) {
+			builder = mBackend.createUser(username, email, password, imagePath).toBuilder();
+		}
+
+		return StormpathAccountBridge.userFromAccount(account, builder);
+
+	}
+
+	@Override
 	public Models.User getUser(String username) throws BackendException {
-		return mBackend.getUser(username);
+
+		// first grab any local data
+		Models.User.Builder builder;
+		if (!(mBackend instanceof LocalBackend)) {
+			builder = mBackend.getUser(username).toBuilder();
+		} else {
+			builder = Models.User.newBuilder();
+		}
+
+		// next, merge in account data
+		AccountCriteria where = Accounts.where(Accounts.username().eqIgnoreCase(username)).limitTo(1);
+		Iterator<Account> accounts = mApp.getAccounts(where).iterator();
+		if (!accounts.hasNext())
+			throw new StormpathApiException("unable to find user: " + username);
+
+		return StormpathAccountBridge.userFromAccount(accounts.next(), builder);
+
 	}
 
 	@Override
 	public List<Models.User> getUsers() throws BackendException {
-		return mBackend.getUsers();
+
+		// first, grab in any local data
+		Map<String, Models.User.Builder> builders = new HashMap<String, Models.User.Builder>();
+		if (!(mBackend instanceof LocalBackend))
+			for (Models.User user : mBackend.getUsers())
+				builders.put(user.getUsername(), user.toBuilder());
+
+
+		// next, merge in account data
+		ArrayList<Models.User> users = new ArrayList<Models.User>();
+		for (Account account : mApp.getAccounts()) {
+			Models.User.Builder builder = Models.User.newBuilder();
+			if (builders.containsKey(account.getUsername()))
+				builder = builders.get(account.getUsername());
+			users.add(StormpathAccountBridge.userFromAccount(account, builder));
+		}
+
+		return users;
+
 	}
 
 	@Nullable

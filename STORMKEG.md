@@ -46,17 +46,22 @@ out a constructor that shows how we'd like to use our proxy:
 public class StormpathBackendProxy implements Backend {
 
 	private Client mClient;
+	private Application mApp;
 	private Backend mBackend;
 
-	public StormpathBackendProxy(Client client, Backend backend) {
+	public StormpathBackendProxy(Client client, Application app, Backend backend) {
+		mApp = app;
 		mClient = client;
 		mBackend = backend;
 	}
 
 	public static StormpathBackendProxy fromContext(Context context, Backend backend) {
-		final AppConfiguration config = KegbotApplication.get(context).getConfig();
-		return new StormpathBackendProxy(null, backend); // TODO: instantiate Stormpath client from config
+		// TODO: use the context to connect to stormpath
+		return new StormpathBackendProxy(null, null, backend);
 	}
+
+	// ... backend interface methods ...
+
 }
 ```
 
@@ -146,17 +151,19 @@ We can also finish up the `fromContext` method we created for our proxy:
 // StormpathBackendProxy.java
 public static StormpathBackendProxy fromContext(Context context, Backend backend) {
 	final AppConfiguration config = KegbotApplication.get(context).getConfig();
-	ApiKey key = ApiKeys.builder().setId(config.getStormpathId()).setSecret(config.getStormpathSecret()).build();
-	Client client = Clients.builder().setApiKey(key).build();
+	final ApiKey key = ApiKeys.builder().setId(config.getStormpathId()).setSecret(config.getStormpathSecret()).build();
+	final Client client = Clients.builder().setApiKey(key).build();
+	final String appName = config.getStormpathAppName();
+	final Application app = client.getApplications(Applications.where(Applications.name().eqIgnoreCase(appName))).iterator().next();
 	return new StormpathBackendProxy(client, backend);
-}
+}	
 
 ```
 
 Great. Now our app's configuration can support the concepts necessary to connect to the Stormpath API, and we can
 can inject our proxy in between the app and it's backend.
 
-## Extending The Setup to Provide Credentials
+## Extending Setup to Provide Credentials
 Even though the app can now support Stormpath credentials, the credentials still need to come from somewhere; 
 that's where the `SetupActivity` comes in. The Kegbot App runs an interactive setup activity the first time the app 
 is launched on a tablet. This activity runs through a series of steps, eventually filling out the app's configuration.
@@ -170,9 +177,143 @@ Stated simply we'll need to add some UI and controllers- you can find them here
 - `SetupStormpathFragment.java` The content of the setup screen
 - `SetupStormpathStep.java` The step logic for the Stormpath setup
 
-<!-- To communicate with the Stormpath REST API, we can leverage the existing Java instrumentation. Namely, we'll be using 
-[The Stormpath Java SDK][2], and we need to instantiate it in the application. The idiomatic way to do this is in Java is 
-via a lazy-loaded, app-wide singleton. Luckily, the app already has one: `KegbotCore.java`. -->
+## Hijacking Authentication
+Now that all the tools are in place, and we've set up our client, it's now time to start incorporating Stormpath into the 
+authentication workflow. We'll need to create a bridge between KegBot _users_ and Stormpath _accounts_. Here's the basic
+logic from `StormpathAccountBridge.java`:
+
+```java
+
+public static Models.User userFromAccount(Account account) {
+
+	CustomData data = account.getCustomData();
+	Models.User.Builder builder = Models.User.newBuilder()
+			.setEmail(account.getEmail())
+			.setDisplayName(account.getUsername())
+			.setUsername(account.getUsername())
+			.setFirstName(account.getGivenName())
+			.setLastName(account.getSurname())
+			.setIsActive(account.getStatus() != AccountStatus.DISABLED)
+			.setUrl(account.getHref());
+
+	String key = StormpathCustomDataKey.DATE_JOINED.name();
+	if (data.containsKey(key)) {
+		builder.setDateJoined((String) data.get(key));
+	}
+
+	key = StormpathCustomDataKey.PROFILE_IMAGE.name();
+	if (data.containsKey(key)) {
+		try {
+			byte[] imageData = (byte[]) data.get(key);
+			Models.Image image = Models.Image.parseFrom(imageData);
+			builder.setImage(image);
+		} catch (InvalidProtocolBufferException e) {
+			e.printStackTrace();
+		}
+	}
+
+	return builder.build();
+
+}
+
+```
+
+Now we can take over the user creation methods of `Backend`, leveraging the Stormpath Account API!
+
+```java
+
+// StormpathBackendProxy.java
+
+@Override
+public Models.User createUser(String username, String email, String password, String imagePath) throws BackendException {
+
+	Account account = mClient.instantiate(Account.class);
+
+	account.setEmail(email);
+	account.setUsername(username);
+	account.setPassword(password);
+
+	CustomData data = account.getCustomData();
+	Date date = new Date();
+	data.put(StormpathCustomDataKey.DATE_JOINED.name(), date.toString());
+
+	File file = new File(imagePath);
+	if (file.exists()) {
+		try {
+			data.put(StormpathCustomDataKey.PROFILE_IMAGE.name(), Files.toByteArray(file));
+		} catch (IOException ex) {
+			throw new BackendException("unable to read user image file", ex);
+		}
+	}
+
+	// save the account to stormpath
+	try {
+		account = mApp.createAccount(account);
+	} catch (ResourceException ex) {
+		throw new StormpathApiException("unable to create account", ex);
+	}
+
+	// save the account to the backend
+	Models.User.Builder builder = Models.User.newBuilder();
+	if (!(mBackend instanceof LocalBackend)) {
+		builder = mBackend.createUser(username, email, password, imagePath).toBuilder();
+	}
+
+	return StormpathAccountBridge.userFromAccount(account, builder);
+
+}
+
+@Override
+public Models.User getUser(String username) throws BackendException {
+
+	// first grab any local data
+	Models.User.Builder builder;
+	if (!(mBackend instanceof LocalBackend)) {
+		builder = mBackend.getUser(username).toBuilder();
+	} else {
+		builder = Models.User.newBuilder();
+	}
+
+	// next, merge in account data
+	AccountCriteria where = Accounts.where(Accounts.username().eqIgnoreCase(username)).limitTo(1);
+	Iterator<Account> accounts = mApp.getAccounts(where).iterator();
+	if (!accounts.hasNext())
+		throw new StormpathApiException("unable to find user: " + username);
+
+	return StormpathAccountBridge.userFromAccount(accounts.next(), builder);
+
+}
+
+@Override
+public List<Models.User> getUsers() throws BackendException {
+
+	// first, grab in any local data
+	Map<String, Models.User.Builder> builders = new HashMap<String, Models.User.Builder>();
+	if (!(mBackend instanceof LocalBackend))
+		for (Models.User user : mBackend.getUsers())
+			builders.put(user.getUsername(), user.toBuilder());
+
+
+	// next, merge in account data
+	ArrayList<Models.User> users = new ArrayList<Models.User>();
+	for (Account account : mApp.getAccounts()) {
+		Models.User.Builder builder = Models.User.newBuilder();
+		if (builders.containsKey(account.getUsername()))
+			builder = builders.get(account.getUsername());
+		users.add(StormpathAccountBridge.userFromAccount(account, builder));
+	}
+
+	return users;
+	
+}
+
+```
+
+That's it! Here are some steps we could take to make the integration even better:
+
+- Replace the device authentication with Facebook and other federated logins
+- Use a local cache to map NFC card tokens to stormpath accounts
+- Save some small statistic data to the stormpath accounts so that we can use stats outside of the proprietary server
 
 [1]:https://kegbot.org/
 [2]:http://docs.stormpath.com/java/quickstart/

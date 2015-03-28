@@ -81,7 +81,7 @@ public class SetupStormpathFragment extends SetupFragment {
 		Log.d(TAG, "Testing stormpath config...");
 		StormpathBackendProxy proxy = StormpathBackendProxy.fromContext(getActivity());
 		if (proxy.getStormpathApplication() != null) {
-			return "Unable to connect to stormpath application";
+			return "Unable to find stormpath application: " + prefs.getStormpathAppName();
 		}
 
 		prefs.setStormpathId(id);
