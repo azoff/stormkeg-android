@@ -1,15 +1,20 @@
 package com.stormpath.kegbot;
 
 import android.content.Context;
+import android.util.Log;
 import com.google.common.io.Files;
 import com.stormpath.sdk.account.*;
 import com.stormpath.sdk.api.ApiKey;
 import com.stormpath.sdk.api.ApiKeys;
 import com.stormpath.sdk.application.Application;
+import com.stormpath.sdk.application.ApplicationCriteria;
 import com.stormpath.sdk.application.Applications;
+import com.stormpath.sdk.cache.CacheManager;
+import com.stormpath.sdk.client.AuthenticationScheme;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.client.Clients;
 import com.stormpath.sdk.directory.CustomData;
+import com.stormpath.sdk.query.Criterion;
 import com.stormpath.sdk.resource.ResourceException;
 import org.codehaus.jackson.JsonNode;
 import org.kegbot.app.KegbotApplication;
@@ -31,31 +36,39 @@ import java.util.*;
  */
 public class StormpathBackendProxy implements Backend {
 
+	private String mAppName;
 	private Client mClient;
-	private Application mApp;
 	private Backend mBackend;
 
-	public StormpathBackendProxy(Client client, Application app, Backend backend) {
-		mApp = app;
+	private static final String TAG = StormpathBackendProxy.class.getSimpleName();
+
+	private static final Map<String,Application> mAppCache = new HashMap<String, Application>();
+
+	public StormpathBackendProxy(String appName, Client client, Backend backend) {
 		mClient = client;
+		mAppName = appName;
 		mBackend = backend;
 	}
 
-	public static StormpathBackendProxy fromContext(Context context, Backend backend) {
+	public static StormpathBackendProxy fromContext(Context context, Backend backend)
+			throws ResourceException, NoSuchElementException {
 		final AppConfiguration config = KegbotApplication.get(context).getConfig();
 		final ApiKey key = ApiKeys.builder().setId(config.getStormpathId()).setSecret(config.getStormpathSecret()).build();
-		final Client client = Clients.builder().setApiKey(key).build();
-		final String appName = config.getStormpathAppName();
-		final Application app = client.getApplications(Applications.where(Applications.name().eqIgnoreCase(appName))).iterator().next();
-		return new StormpathBackendProxy(client, app, backend);
-	}
-
-	public Application getStormpathApplication() {
-		return mApp;
+		final Client client = Clients.builder().setApiKey(key).setAuthenticationScheme(AuthenticationScheme.BASIC).build();
+		final String name = config.getStormpathAppName();
+		return new StormpathBackendProxy(name, client, backend);
 	}
 
 	public static StormpathBackendProxy fromContext(Context context) {
 		return fromContext(context, null);
+	}
+
+	public Application getApplication() throws NoSuchElementException {
+		if (mAppCache.containsKey(mAppName)) return mAppCache.get(mAppName);
+		ApplicationCriteria query = Applications.where(Applications.name().eqIgnoreCase(mAppName));
+		Application app = mClient.getApplications(query).iterator().next();
+		mAppCache.put(mAppName, app);
+		return app;
 	}
 
 	@Override
@@ -133,9 +146,16 @@ public class StormpathBackendProxy implements Backend {
 
 		Account account = mClient.instantiate(Account.class);
 
+		if (password == null) {
+			password = "SK" + UUID.randomUUID().toString();
+		}
+
 		account.setEmail(email);
 		account.setUsername(username);
 		account.setPassword(password);
+
+		account.setGivenName("Joe");
+		account.setSurname("Shmoe");
 
 		CustomData data = account.getCustomData();
 		Date date = new Date();
@@ -152,9 +172,10 @@ public class StormpathBackendProxy implements Backend {
 
 		// save the account to stormpath
 		try {
-			account = mApp.createAccount(account);
+			account = getApplication().createAccount(account);
 		} catch (ResourceException ex) {
-			throw new StormpathApiException("unable to create account", ex);
+			Log.e(TAG, "unable to create account", ex);
+			throw new StormpathApiException("unable to create account: "+ ex.getDeveloperMessage(), ex);
 		}
 
 		// save the account to the backend
@@ -180,7 +201,7 @@ public class StormpathBackendProxy implements Backend {
 
 		// next, merge in account data
 		AccountCriteria where = Accounts.where(Accounts.username().eqIgnoreCase(username)).limitTo(1);
-		Iterator<Account> accounts = mApp.getAccounts(where).iterator();
+		Iterator<Account> accounts = getApplication().getAccounts(where).iterator();
 		if (!accounts.hasNext())
 			throw new StormpathApiException("unable to find user: " + username);
 
@@ -200,7 +221,7 @@ public class StormpathBackendProxy implements Backend {
 
 		// next, merge in account data
 		ArrayList<Models.User> users = new ArrayList<Models.User>();
-		for (Account account : mApp.getAccounts()) {
+		for (Account account : getApplication().getAccounts()) {
 			Models.User.Builder builder = Models.User.newBuilder();
 			if (builders.containsKey(account.getUsername()))
 				builder = builders.get(account.getUsername());

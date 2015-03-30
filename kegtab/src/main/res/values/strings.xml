@@ -141,7 +141,7 @@
 	<string name="password_description">Your Kegbot account password.</string>
 	<string name="privacy_policy_title">Privacy Policy</string>
 	<string name="stormpath_title">Stormpath Configuration</string>
-	<string name="stormpath_caption">If you wish to use Stormpath as an authentication authority, please enter your credentials below.</string>
+	<string name="stormpath_caption">If you wish to use Stormpath as an authentication authority, please enter your credentials here. Otherwise, just hit next to skip this step.</string>
 	<string name="stormpath_app_title">Application Name</string>
 	<string name="stormpath_app_description">The name of your Stormpath Application</string>
 	<string name="stormpath_id_title">API ID</string>

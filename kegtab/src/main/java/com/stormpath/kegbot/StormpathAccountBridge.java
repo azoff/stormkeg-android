@@ -6,6 +6,8 @@ import com.stormpath.sdk.account.AccountStatus;
 import com.stormpath.sdk.directory.CustomData;
 import org.kegbot.proto.Models;
 
+import java.nio.charset.Charset;
+
 /**
  * Created by Azoff on 3/27/15.
  */
@@ -34,7 +36,7 @@ public class StormpathAccountBridge {
 		key = StormpathCustomDataKey.PROFILE_IMAGE.name();
 		if (data.containsKey(key)) {
 			try {
-				byte[] imageData = (byte[]) data.get(key);
+				byte[] imageData = String.valueOf(data.get(key)).getBytes();
 				Models.Image image = Models.Image.parseFrom(imageData);
 				builder.setImage(image);
 			} catch (InvalidProtocolBufferException e) {

@@ -26,9 +26,12 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import com.google.common.base.Strings;
 import com.stormpath.kegbot.StormpathBackendProxy;
+import com.stormpath.sdk.resource.ResourceException;
 import org.kegbot.app.KegbotApplication;
 import org.kegbot.app.R;
 import org.kegbot.app.config.AppConfiguration;
+
+import java.util.NoSuchElementException;
 
 public class SetupStormpathFragment extends SetupFragment {
 
@@ -62,7 +65,7 @@ public class SetupStormpathFragment extends SetupFragment {
 	}
 
 	private String getAppSecret() {
-		return idEditText.getText().toString();
+		return secretEditText.getText().toString();
 	}
 
 	@Override
@@ -73,20 +76,34 @@ public class SetupStormpathFragment extends SetupFragment {
 		final String name = getAppName();
 		final String secret = getAppSecret();
 
-		if (Strings.isNullOrEmpty(id) || Strings.isNullOrEmpty(secret) || Strings.isNullOrEmpty(name)) {
-			Log.d(TAG, "Skipping stormpath config...");
-			return "";
+		final boolean idEmpty = Strings.isNullOrEmpty(id);
+		final boolean secretEmpty = Strings.isNullOrEmpty(secret);
+		final boolean nameEmpty = Strings.isNullOrEmpty(name);
+
+		if (idEmpty || secretEmpty || nameEmpty) {
+			if (idEmpty && secretEmpty && nameEmpty) {
+				Log.d(TAG, "Skipping stormpath config...");
+				return "";
+			} else {
+				return "Please fill out all three fields if you wish to connect to Stormpath";
+			}
 		}
 
 		Log.d(TAG, "Testing stormpath config...");
-		StormpathBackendProxy proxy = StormpathBackendProxy.fromContext(getActivity());
-		if (proxy.getStormpathApplication() != null) {
-			return "Unable to find stormpath application: " + prefs.getStormpathAppName();
-		}
 
 		prefs.setStormpathId(id);
 		prefs.setStormpathAppName(name);
 		prefs.setStormpathSecret(secret);
+
+		try {
+			StormpathBackendProxy.fromContext(getActivity()).getApplication();
+		} catch (NoSuchElementException ex) {
+			return "Unable to find stormpath application: " + prefs.getStormpathAppName();
+		} catch (ResourceException ex) {
+			Log.e(TAG, "Client instantiation failed", ex);
+			return "Unable to connect to Stormpath service: " + ex.getDeveloperMessage();
+		}
+
 		return "";
 	}
 

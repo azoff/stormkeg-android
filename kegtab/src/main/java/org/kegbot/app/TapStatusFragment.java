@@ -160,14 +160,15 @@ public class TapStatusFragment extends Fragment {
 			return;
 		}
 
-		if (!getTap().hasMeter()) {
-			mCore.getAlertCore().postAlert(
-					AlertCore.newBuilder("Tap Disconnected")
-							.setDescription("This tap is not connected to a meter right now.")
-							.severityError()
-							.build());
-			return;
-		}
+		// NOTE: disabled for demo
+//		if (!getTap().hasMeter()) {
+//			mCore.getAlertCore().postAlert(
+//					AlertCore.newBuilder("Tap Disconnected")
+//							.setDescription("This tap is not connected to a meter right now.")
+//							.severityError()
+//							.build());
+//			return;
+//		}
 
 		if (config.useAccounts()) {
 			final Intent intent = KegtabCommon.getAuthDrinkerActivityIntent(getActivity());

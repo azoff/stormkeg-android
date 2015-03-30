@@ -1,0 +1,2 @@
+configurations.create("default")
+artifacts.add("default", file('stormpath-sdk-httpclient-1.0.RC4-SNAPSHOT.jar'))

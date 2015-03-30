@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="stormpath-sdk-httpclient-1.0.RC4-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/modules/stormpath-sdk-java/extensions/httpclient/build/libs/stormpath-sdk-httpclient-1.0.RC4-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

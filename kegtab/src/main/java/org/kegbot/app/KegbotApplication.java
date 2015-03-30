@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.preference.PreferenceManager;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 import org.kegbot.app.config.AppConfiguration;
 import org.kegbot.app.config.SharedPreferencesConfigurationStore;
@@ -40,7 +41,7 @@ import org.kegbot.app.util.Utils;
  *
  * @author mike wakerly (opensource@hoho.com)
  */
-public class KegbotApplication extends Application {
+public class KegbotApplication extends MultiDexApplication {
 
 	private static final String TAG = KegbotApplication.class.getSimpleName();
 

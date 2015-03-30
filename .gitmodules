@@ -1,3 +1,6 @@
 [submodule "modules/usb-serial-for-android"]
 	path = modules/usb-serial-for-android
 	url = git@github.com:azoff/usb-serial-for-android.git
+[submodule "modules/stormpath-sdk-java"]
+	path = modules/stormpath-sdk-java
+	url = git@github.com:azoff/stormpath-sdk-java.git

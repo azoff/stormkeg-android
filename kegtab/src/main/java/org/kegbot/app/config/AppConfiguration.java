@@ -338,7 +338,7 @@ public class AppConfiguration {
 	}
 
 	public boolean useAccounts() {
-		return !isLocalBackend();
+		return !isLocalBackend() || isStormpathAvailable();
 	}
 
 	public String getEmailAddress() {

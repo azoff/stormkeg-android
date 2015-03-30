@@ -309,7 +309,40 @@ public List<Models.User> getUsers() throws BackendException {
 
 ```
 
-That's it! Here are some steps we could take to make the integration even better:
+That's it! We should be able to run the project now.
+
+## Troubleshooting
+
+The Stormpath SDK relies on [The Apache HTTP Components Library][9] for instantiating Clients. Unfortunately, The Android SDK 
+insists that developers favor the built-in java APIs. As a result, using Stormpath might require a little working around the
+limitations. First, we can import the android-port of the http component libraries using gradle:
+
+```groovy
+
+// kegtab/build.gradle
+compile 'org.apache.httpcomponents:httpclient-android:4.3.3'
+
+```
+
+Then we can [fork the SDK][10] to work with the modified HTTP client and replace the official reference with our compiled jars:
+
+```groovy
+
+// kegtab/build.gradle
+
+compile files('../modules/stormpath-sdk-java/api/build/libs/stormpath-sdk-api-1.0.RC4-SNAPSHOT.jar')
+compile files('../modules/stormpath-sdk-java/impl/build/libs/stormpath-sdk-impl-1.0.RC4-SNAPSHOT.jar')
+compile files('../modules/stormpath-sdk-java/extensions/oauth/build/libs/stormpath-sdk-oauth-1.0.RC4-SNAPSHOT.jar')
+compile files('../modules/stormpath-sdk-java/extensions/httpclient/build/libs/stormpath-sdk-httpclient-1.0.RC4-SNAPSHOT.jar')
+
+```
+
+_Note: These jars are not properly packaged, and are simply listed flat to enumerate the dependencies._
+
+
+
+## Next Steps
+Here are some steps we could take to make the integration even better:
 
 - Replace the device authentication with Facebook and other federated logins
 - Use a local cache to map NFC card tokens to stormpath accounts
@@ -323,3 +356,5 @@ That's it! Here are some steps we could take to make the integration even better
 [6]:https://github.com/azoff/usb-serial-for-android
 [7]:http://tools.android.com/tech-docs/new-build-system/migrating-to-1-0-0
 [8]:https://try.crashlytics.com/
+[9]:https://hc.apache.org/httpcomponents-client-4.3.x/android-port.html
+[10]:https://github.com/azoff/stormpath-sdk-java
